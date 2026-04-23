@@ -9,7 +9,7 @@ const login = async (req, res, next) => {
             return res.status(400).json({ success: false, error: 'Please provide username and password' });
         }
 
-        const [rows] = await pool.query('SELECT * FROM Users WHERE username = ?', [username]);
+        const [rows] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
         if (rows.length === 0) {
             return res.status(401).json({ success: false, error: 'Invalid credentials' });
         }
@@ -51,7 +51,7 @@ const register = async (req, res, next) => {
         const password_hash = await bcrypt.hash(password, salt);
 
         const [result] = await pool.query(
-            'INSERT INTO Users (name, username, password_hash, role) VALUES (?, ?, ?, ?)',
+            'INSERT INTO users (name, username, password_hash, role) VALUES (?, ?, ?, ?)',
             [name, username, password_hash, userRole]
         );
 
@@ -70,7 +70,7 @@ const register = async (req, res, next) => {
 
 const getMe = async (req, res, next) => {
     try {
-        const [rows] = await pool.query('SELECT id, name, username, role FROM Users WHERE id = ?', [req.user.id]);
+        const [rows] = await pool.query('SELECT id, name, username, role FROM users WHERE id = ?', [req.user.id]);
         if (rows.length === 0) {
             return res.status(404).json({ success: false, error: 'User not found' });
         }

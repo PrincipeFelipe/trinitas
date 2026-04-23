@@ -4,10 +4,10 @@ const getMyRoute = async (req, res, next) => {
     try {
         const query = `
             SELECT n.*, 
-                   (SELECT COUNT(*) FROM Delivery_Attempts da WHERE da.notification_id = n.id) as attempt_count,
+                   (SELECT COUNT(*) FROM delivery_attempts da WHERE da.notification_id = n.id) as attempt_count,
                    s.name as street_name
-            FROM Notifications n
-            LEFT JOIN Streets s ON n.street_id = s.id
+            FROM notifications n
+            LEFT JOIN streets s ON n.street_id = s.id
             WHERE assigned_user_id = ? 
               AND status NOT IN ('DELIVERED', 'RETURNED')
         `;
@@ -36,7 +36,7 @@ const recordAttempt = async (req, res, next) => {
         }
 
         // Count previous attempts
-        const [attRows] = await pool.query('SELECT COUNT(*) as count FROM Delivery_Attempts WHERE notification_id = ?', [notification_id]);
+        const [attRows] = await pool.query('SELECT COUNT(*) as count FROM delivery_attempts WHERE notification_id = ?', [notification_id]);
         let attemptCount = attRows[0].count;
         
         if (attemptCount >= 2) {
@@ -47,7 +47,7 @@ const recordAttempt = async (req, res, next) => {
 
         // Insert Attempt Log
         await pool.query(`
-            INSERT INTO Delivery_Attempts (notification_id, attempt_number, status_result, receiver_name, receiver_dni, signature_base64, delivered_by)
+            INSERT INTO delivery_attempts (notification_id, attempt_number, status_result, receiver_name, receiver_dni, signature_base64, delivered_by)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         `, [notification_id, newAttemptNumber, status_result, receiver_name || null, receiver_dni || null, signature_base64 || null, user_id]);
 
@@ -65,7 +65,7 @@ const recordAttempt = async (req, res, next) => {
         }
 
         // Update Notification table
-        await pool.query('UPDATE Notifications SET status = ? WHERE id = ?', [newNotificationStatus, notification_id]);
+        await pool.query('UPDATE notifications SET status = ? WHERE id = ?', [newNotificationStatus, notification_id]);
 
         // Trigger PDF Compilation if finalized
         if (newNotificationStatus === 'DELIVERED' || newNotificationStatus === 'RETURNED') {

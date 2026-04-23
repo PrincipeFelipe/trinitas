@@ -4,9 +4,9 @@ const getAllAssignments = async (req, res, next) => {
     try {
         const query = `
             SELECT d.id, d.user_id, u.name as user_name, d.street_id, s.name as street_name 
-            FROM Demarcations d
-            JOIN Users u ON d.user_id = u.id
-            JOIN Streets s ON d.street_id = s.id
+            FROM demarcations d
+            JOIN users u ON d.user_id = u.id
+            JOIN streets s ON d.street_id = s.id
         `;
         const [rows] = await pool.query(query);
         res.json({ success: true, data: rows });
@@ -23,7 +23,7 @@ const assignStreetToUser = async (req, res, next) => {
         }
 
         const [result] = await pool.query(
-            'INSERT INTO Demarcations (user_id, street_id) VALUES (?, ?)',
+            'INSERT INTO demarcations (user_id, street_id) VALUES (?, ?)',
             [user_id, street_id]
         );
         res.status(201).json({ success: true, data: { id: result.insertId, user_id, street_id } });
@@ -37,7 +37,7 @@ const assignStreetToUser = async (req, res, next) => {
 
 const removeAssignment = async (req, res, next) => {
     try {
-        const [result] = await pool.query('DELETE FROM Demarcations WHERE id = ?', [req.params.id]);
+        const [result] = await pool.query('DELETE FROM demarcations WHERE id = ?', [req.params.id]);
         if (result.affectedRows === 0) return res.status(404).json({ success: false, error: 'Assignment not found' });
 
         res.json({ success: true, message: 'Assignment removed' });
@@ -56,8 +56,8 @@ const getUserStreets = async (req, res, next) => {
 
         const query = `
             SELECT d.id, d.street_id, s.name as street_name 
-            FROM Demarcations d
-            JOIN Streets s ON d.street_id = s.id
+            FROM demarcations d
+            JOIN streets s ON d.street_id = s.id
             WHERE d.user_id = ?
         `;
         const [rows] = await pool.query(query, [userId]);

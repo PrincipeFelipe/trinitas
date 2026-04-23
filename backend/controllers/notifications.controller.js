@@ -116,8 +116,8 @@ const uploadNotifications = async (req, res, next) => {
         const lines = fileContent.split(/\r?\n/).filter(line => line.trim().length > 0);
 
         // Load all streets and demarcations
-        const [streets] = await pool.query('SELECT * FROM Streets');
-        const [demarcations] = await pool.query('SELECT * FROM Demarcations');
+        const [streets] = await pool.query('SELECT * FROM streets');
+        const [demarcations] = await pool.query('SELECT * FROM demarcations');
 
         // Build lookup map: street name (uppercase) -> { id, user_id }
         const streetMap = new Map();
@@ -134,7 +134,7 @@ const uploadNotifications = async (req, res, next) => {
         const newStreetsFound = new Set();
 
         // Clear old notifications before re-import
-        await pool.query('DELETE FROM Notifications');
+        await pool.query('DELETE FROM notifications');
 
         for (const line of lines) {
             if (line.length < 45) continue;
@@ -169,7 +169,7 @@ const uploadNotifications = async (req, res, next) => {
             }
 
             await pool.query(`
-                INSERT IGNORE INTO Notifications (id, recipient_name, full_address, street_id, assigned_user_id, status)
+                INSERT IGNORE INTO notifications (id, recipient_name, full_address, street_id, assigned_user_id, status)
                 VALUES (?, ?, ?, ?, ?, 'PENDING')
             `, [id, recipient_name, full_address, street_id, assigned_user_id]);
         }
@@ -215,8 +215,8 @@ const bulkAssignByStreet = async (req, res, next) => {
         }
 
         // Load streets and demarcations
-        const [streets] = await pool.query('SELECT * FROM Streets');
-        const [demarcations] = await pool.query('SELECT * FROM Demarcations');
+        const [streets] = await pool.query('SELECT * FROM streets');
+        const [demarcations] = await pool.query('SELECT * FROM demarcations');
         
         const streetMap = new Map();
         for (const s of streets) {
@@ -231,7 +231,7 @@ const bulkAssignByStreet = async (req, res, next) => {
             const lookup = streetMap.get(item.extracted_street.toUpperCase());
             if (lookup) {
                 await pool.query(
-                    'UPDATE Notifications SET street_id = ?, assigned_user_id = ? WHERE id = ?',
+                    'UPDATE notifications SET street_id = ?, assigned_user_id = ? WHERE id = ?',
                     [lookup.id, lookup.user_id, item.notification_id]
                 );
                 assigned++;
@@ -252,11 +252,11 @@ const assignManual = async (req, res, next) => {
             return res.status(400).json({ success: false, error: 'Missing parameters' });
         }
 
-        const [demarcationRows] = await pool.query('SELECT user_id FROM Demarcations WHERE street_id = ?', [street_id]);
+        const [demarcationRows] = await pool.query('SELECT user_id FROM demarcations WHERE street_id = ?', [street_id]);
         const user_id = demarcationRows.length > 0 ? demarcationRows[0].user_id : null;
 
         await pool.query(
-            'UPDATE Notifications SET street_id = ?, assigned_user_id = ? WHERE id = ?',
+            'UPDATE notifications SET street_id = ?, assigned_user_id = ? WHERE id = ?',
             [street_id, user_id, notification_id]
         );
 
@@ -279,9 +279,9 @@ const listNotifications = async (req, res, next) => {
                 n.created_at,
                 s.name AS street_name,
                 u.name AS assigned_user_name
-            FROM Notifications n
-            LEFT JOIN Streets s ON n.street_id = s.id
-            LEFT JOIN Users u ON n.assigned_user_id = u.id
+            FROM notifications n
+            LEFT JOIN streets s ON n.street_id = s.id
+            LEFT JOIN users u ON n.assigned_user_id = u.id
             ORDER BY n.id ASC
         `);
         res.json({ success: true, data: rows });
@@ -299,7 +299,7 @@ const reassignUser = async (req, res, next) => {
 
         // user_id can be null to unassign
         await pool.query(
-            'UPDATE Notifications SET assigned_user_id = ? WHERE id = ?',
+            'UPDATE notifications SET assigned_user_id = ? WHERE id = ?',
             [user_id || null, notification_id]
         );
 
@@ -312,20 +312,20 @@ const reassignUser = async (req, res, next) => {
 const reassignAll = async (req, res, next) => {
     try {
         // Load current demarcations: street_id -> user_id
-        const [demarcations] = await pool.query('SELECT street_id, user_id FROM Demarcations');
+        const [demarcations] = await pool.query('SELECT street_id, user_id FROM demarcations');
         const demMap = new Map();
         for (const d of demarcations) {
             demMap.set(d.street_id, d.user_id);
         }
 
         // Load all notifications
-        const [notifications] = await pool.query('SELECT id, street_id, assigned_user_id FROM Notifications');
+        const [notifications] = await pool.query('SELECT id, street_id, assigned_user_id FROM notifications');
 
         let updated = 0;
         for (const n of notifications) {
             const newUserId = n.street_id ? (demMap.get(n.street_id) || null) : null;
             if (newUserId !== n.assigned_user_id) {
-                await pool.query('UPDATE Notifications SET assigned_user_id = ? WHERE id = ?', [newUserId, n.id]);
+                await pool.query('UPDATE notifications SET assigned_user_id = ? WHERE id = ?', [newUserId, n.id]);
                 updated++;
             }
         }
@@ -343,9 +343,9 @@ const getNotificationDetails = async (req, res, next) => {
         // Get notification main data
         const [notifRows] = await pool.query(`
             SELECT n.*, s.name as street_name, u.name as assigned_user_name
-            FROM Notifications n
-            LEFT JOIN Streets s ON n.street_id = s.id
-            LEFT JOIN Users u ON n.assigned_user_id = u.id
+            FROM notifications n
+            LEFT JOIN streets s ON n.street_id = s.id
+            LEFT JOIN users u ON n.assigned_user_id = u.id
             WHERE n.id = ?
         `, [id]);
 
@@ -356,8 +356,8 @@ const getNotificationDetails = async (req, res, next) => {
         // Get attempts
         const [attemptRows] = await pool.query(`
             SELECT da.*, u.name as delivered_by_name
-            FROM Delivery_Attempts da
-            LEFT JOIN Users u ON da.delivered_by = u.id
+            FROM delivery_attempts da
+            LEFT JOIN users u ON da.delivered_by = u.id
             WHERE da.notification_id = ?
             ORDER BY da.attempt_number ASC
         `, [id]);
@@ -381,9 +381,9 @@ const generatePdf = async (req, res, next) => {
         // Get notification main data
         const [notifRows] = await pool.query(`
             SELECT n.*, s.name as street_name, u.name as assigned_user_name
-            FROM Notifications n
-            LEFT JOIN Streets s ON n.street_id = s.id
-            LEFT JOIN Users u ON n.assigned_user_id = u.id
+            FROM notifications n
+            LEFT JOIN streets s ON n.street_id = s.id
+            LEFT JOIN users u ON n.assigned_user_id = u.id
             WHERE n.id = ?
         `, [id]);
 
@@ -396,8 +396,8 @@ const generatePdf = async (req, res, next) => {
         // Get attempts
         const [attemptRows] = await pool.query(`
             SELECT da.*, u.name as delivered_by_name
-            FROM Delivery_Attempts da
-            LEFT JOIN Users u ON da.delivered_by = u.id
+            FROM delivery_attempts da
+            LEFT JOIN users u ON da.delivered_by = u.id
             WHERE da.notification_id = ?
             ORDER BY da.attempt_number ASC
         `, [id]);

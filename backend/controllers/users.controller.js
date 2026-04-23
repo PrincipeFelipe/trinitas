@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 
 const getAllUsers = async (req, res, next) => {
     try {
-        const [rows] = await pool.query('SELECT id, name, username, role FROM Users ORDER BY id DESC');
+        const [rows] = await pool.query('SELECT id, name, username, role FROM users ORDER BY id DESC');
         res.json({ success: true, data: rows });
     } catch (error) {
         next(error);
@@ -23,7 +23,7 @@ const createUser = async (req, res, next) => {
         const compatHash = hash.replace(/^\$2a\$/, "$2b$");
 
         const [result] = await pool.query(
-            'INSERT INTO Users (name, username, password_hash, role) VALUES (?, ?, ?, ?)',
+            'INSERT INTO users (name, username, password_hash, role) VALUES (?, ?, ?, ?)',
             [name, username, compatHash, role || 'REPARTIDOR']
         );
         res.json({ success: true, data: { id: result.insertId, name, username, role } });
@@ -38,7 +38,7 @@ const createUser = async (req, res, next) => {
 const deleteUser = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const [result] = await pool.query('DELETE FROM Users WHERE id = ?', [id]);
+        const [result] = await pool.query('DELETE FROM users WHERE id = ?', [id]);
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, error: 'Usuario no encontrado' });
         }
@@ -52,7 +52,7 @@ const updateUser = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { name, role } = req.body; // Solo updateamos metadata para no liar la passwd
-        const [result] = await pool.query('UPDATE Users SET name = ?, role = ? WHERE id = ?', [name, role, id]);
+        const [result] = await pool.query('UPDATE users SET name = ?, role = ? WHERE id = ?', [name, role, id]);
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, error: 'Usuario no encontrado' });
         }
