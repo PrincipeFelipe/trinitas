@@ -12,18 +12,18 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
                 SUM(CASE WHEN status = 'RETURNED' THEN 1 ELSE 0 END) as returned,
                 SUM(CASE WHEN assigned_user_id IS NULL THEN 1 ELSE 0 END) as unassigned,
                 SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END) as pending
-            FROM Notifications
+            FROM notifications
         `);
 
         const [[userStats]] = await pool.query(`
             SELECT 
                 COUNT(*) as total_users,
                 SUM(CASE WHEN role = 'REPARTIDOR' THEN 1 ELSE 0 END) as total_couriers
-            FROM Users
+            FROM users
         `);
 
         const [[streetStats]] = await pool.query(`
-            SELECT COUNT(*) as total_streets FROM Streets
+            SELECT COUNT(*) as total_streets FROM streets
         `);
 
         res.json({

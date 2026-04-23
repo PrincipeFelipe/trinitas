@@ -9,7 +9,7 @@ router.get('/history', verifyToken, async (req, res, next) => {
     try {
         const [rows] = await pool.query(`
             SELECT id, recipient_name, full_address, status 
-            FROM Notifications 
+            FROM notifications 
             WHERE status IN ('DELIVERED', 'RETURNED')
             ORDER BY id DESC
         `);

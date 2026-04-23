@@ -14,8 +14,8 @@ const generateReceiptPDF = async (notification_id) => {
         // Query full data
         const [notifRows] = await pool.query(`
             SELECT n.*, s.name as street_name 
-            FROM Notifications n 
-            LEFT JOIN Streets s ON n.street_id = s.id 
+            FROM notifications n 
+            LEFT JOIN streets s ON n.street_id = s.id 
             WHERE n.id = ?
         `, [notification_id]);
         
@@ -24,8 +24,8 @@ const generateReceiptPDF = async (notification_id) => {
 
         const [attempts] = await pool.query(`
             SELECT da.*, u.name as courier_name 
-            FROM Delivery_Attempts da 
-            LEFT JOIN Users u ON da.delivered_by = u.id 
+            FROM delivery_attempts da 
+            LEFT JOIN users u ON da.delivered_by = u.id 
             WHERE da.notification_id = ? 
             ORDER BY da.attempt_number ASC
         `, [notification_id]);
