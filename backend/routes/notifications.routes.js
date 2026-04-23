@@ -8,6 +8,7 @@ const notificationsController = require('../controllers/notifications.controller
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post('/upload', verifyToken, requireAdmin, upload.single('file'), notificationsController.uploadNotifications);
+router.post('/extract-streets', verifyToken, requireAdmin, upload.single('file'), notificationsController.extractStreetsOnly);
 router.post('/assign-manual', verifyToken, requireAdmin, notificationsController.assignManual);
 router.post('/add-streets', verifyToken, requireAdmin, notificationsController.addNewStreets);
 router.post('/bulk-assign', verifyToken, requireAdmin, notificationsController.bulkAssignByStreet);

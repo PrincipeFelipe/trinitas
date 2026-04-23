@@ -188,6 +188,42 @@ const uploadNotifications = async (req, res, next) => {
     }
 };
 
+const extractStreetsOnly = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, error: 'No file uploaded' });
+        }
+
+        let fileContent = req.file.buffer.toString('utf-8');
+        if (fileContent.includes('\uFFFD')) {
+            fileContent = req.file.buffer.toString('latin1');
+        }
+        const lines = fileContent.split(/\r?\n/).filter(line => line.trim().length > 0);
+
+        const [streets] = await pool.query('SELECT * FROM streets');
+        const streetNamesInDb = new Set(streets.map(s => s.name.toUpperCase().replace(/\s+/g, ' ').trim()));
+        const newStreetsFound = new Set();
+
+        for (const line of lines) {
+            if (line.length < 45) continue;
+            const full_address = line.substring(45).trim();
+            const extractedStreet = extractStreetName(full_address);
+            
+            if (extractedStreet && !streetNamesInDb.has(extractedStreet)) {
+                newStreetsFound.add(extractedStreet);
+            }
+        }
+
+        res.json({
+            success: true,
+            newStreets: Array.from(newStreetsFound).sort()
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
 const addNewStreets = async (req, res, next) => {
     try {
         const { streets: streetNames } = req.body;
@@ -462,4 +498,4 @@ const generatePdf = async (req, res, next) => {
     }
 };
 
-module.exports = { uploadNotifications, assignManual, addNewStreets, bulkAssignByStreet, listNotifications, reassignUser, reassignAll, getNotificationDetails, generatePdf };
+module.exports = { uploadNotifications, extractStreetsOnly, assignManual, addNewStreets, bulkAssignByStreet, listNotifications, reassignUser, reassignAll, getNotificationDetails, generatePdf };
