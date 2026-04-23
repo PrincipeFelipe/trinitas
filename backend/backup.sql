@@ -1,5 +1,7 @@
 -- Backup Trinitas
--- Fecha: 2026-04-23T11:22:41.586Z
+-- Fecha: 2026-04-23T11:23:55.339Z
+
+SET FOREIGN_KEY_CHECKS = 0;
 
 CREATE TABLE `delivery_attempts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -723,3 +725,4 @@ INSERT INTO `users` (`id`, `name`, `username`, `password_hash`, `role`) VALUES (
 INSERT INTO `users` (`id`, `name`, `username`, `password_hash`, `role`) VALUES (2, 'usuario1', 'usuario1', '$2b$10$tk6LvBU0FPiFmU0UzYpWV.EN00K38kpnhxZCZ/rXqlSqhGG20H.k2', 'REPARTIDOR');
 INSERT INTO `users` (`id`, `name`, `username`, `password_hash`, `role`) VALUES (3, 'usuario2', 'usuario2', '$2b$10$BXbEkzizTG01b6f6RrAnmOoFKmvbion.i4e2K4WKcI6DhRyTLOwL.', 'REPARTIDOR');
 
+SET FOREIGN_KEY_CHECKS = 1;
