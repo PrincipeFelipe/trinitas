@@ -456,37 +456,6 @@ export default function AdminDashboard() {
                     </div>
                     <CourierChart data={courierStats} />
                 </div>
-
-                {/* Unassigned Notifications */}
-                <div className="dash-card">
-                    <div className="dash-card-header">
-                        <span className="dash-card-title">⚠️ Sin Asignar</span>
-                        <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700 }}>
-                            {n.unassigned} total
-                        </span>
-                    </div>
-                    {unassignedNotifs && unassignedNotifs.length > 0 ? (
-                        <div className="unassigned-list">
-                            {unassignedNotifs.map(item => {
-                                const days = Math.floor((new Date() - new Date(item.created_at)) / (1000 * 60 * 60 * 24));
-                                return (
-                                    <div key={item.id} className="unassigned-item">
-                                        <span className="unassigned-id">#{item.id}</span>
-                                        <div className="unassigned-info">
-                                            <p>{item.recipient_name}</p>
-                                            <small>{item.full_address}</small>
-                                        </div>
-                                        <span className="unassigned-days">{days}d</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <p style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '0.9rem' }}>
-                            Todas las notificaciones están asignadas ✅
-                        </p>
-                    )}
-                </div>
             </div>
         </AdminLayout>
     );
