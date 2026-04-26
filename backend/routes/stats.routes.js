@@ -110,4 +110,30 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
     }
 });
 
+router.get('/activity/:date', verifyToken, requireAdmin, async (req, res, next) => {
+    try {
+        const { date } = req.params;
+        const [rows] = await pool.query(`
+            SELECT 
+                da.id as attempt_id,
+                da.timestamp,
+                da.status_result,
+                da.notes,
+                n.id as notification_id,
+                n.recipient_name,
+                n.full_address,
+                u.name as courier_name
+            FROM delivery_attempts da
+            JOIN notifications n ON da.notification_id = n.id
+            LEFT JOIN users u ON da.delivered_by = u.id
+            WHERE DATE(da.timestamp) = ?
+            ORDER BY da.timestamp DESC
+        `, [date]);
+
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        next(error);
+    }
+});
+
 module.exports = router;

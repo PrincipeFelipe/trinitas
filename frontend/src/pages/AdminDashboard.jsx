@@ -5,7 +5,7 @@ import AdminLayout from '../components/AdminLayout';
 // ==========================================
 // Mini Calendar Component
 // ==========================================
-function ActivityCalendar({ calendarData, view, onViewChange }) {
+function ActivityCalendar({ calendarData, view, onViewChange, onDayClick }) {
     const [currentDate, setCurrentDate] = useState(new Date());
 
     const dataMap = {};
@@ -27,7 +27,11 @@ function ActivityCalendar({ calendarData, view, onViewChange }) {
         const info = dataMap[dateStr];
         const isToday = dateStr === fmt(new Date());
         return (
-            <div key={dateStr} className={`cal-day ${isToday ? 'cal-today' : ''} ${isOtherMonth ? 'cal-other-month' : ''}`}>
+            <div 
+                key={dateStr} 
+                className={`cal-day ${isToday ? 'cal-today' : ''} ${isOtherMonth ? 'cal-other-month' : ''} ${info && info.attempts > 0 ? 'cal-clickable' : ''}`}
+                onClick={() => info && info.attempts > 0 && onDayClick(dateStr)}
+            >
                 <span className="cal-day-num">{label}</span>
                 {info && info.attempts > 0 && (
                     <div className="cal-events">
@@ -102,19 +106,20 @@ function ActivityCalendar({ calendarData, view, onViewChange }) {
             <div className="cal-day-single">
                 <h4>{currentDate.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h4>
                 <div className="day-stat-row">
-                    <div className="day-stat green">
+                    <div className="day-stat green" style={{ cursor: info.delivered > 0 ? 'pointer' : 'default' }} onClick={() => info.delivered > 0 && onDayClick(dateStr)}>
                         <span className="day-stat-num">{info.delivered}</span>
                         <span>Entregadas</span>
                     </div>
-                    <div className="day-stat blue">
+                    <div className="day-stat blue" style={{ cursor: (info.attempts - info.delivered) > 0 ? 'pointer' : 'default' }} onClick={() => (info.attempts - info.delivered) > 0 && onDayClick(dateStr)}>
                         <span className="day-stat-num">{info.attempts - info.delivered || 0}</span>
                         <span>Solo Intentos</span>
                     </div>
-                    <div className="day-stat gray">
+                    <div className="day-stat gray" style={{ cursor: info.attempts > 0 ? 'pointer' : 'default' }} onClick={() => info.attempts > 0 && onDayClick(dateStr)}>
                         <span className="day-stat-num">{info.attempts}</span>
                         <span>Total Visitas</span>
                     </div>
                 </div>
+                {info.attempts > 0 && <p style={{ marginTop: '15px', color: '#3182ce', fontWeight: 600, fontSize: '0.9rem' }}>Pulsar para ver listado ↑</p>}
             </div>
         );
     };
@@ -189,6 +194,11 @@ export default function AdminDashboard() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [calView, setCalView] = useState('month');
+    
+    // Day details state
+    const [dayActivity, setDayActivity] = useState(null);
+    const [loadingActivity, setLoadingActivity] = useState(false);
+    const [selectedDate, setSelectedDate] = useState('');
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -204,6 +214,22 @@ export default function AdminDashboard() {
         fetchStats();
     }, []);
 
+    const fetchDayActivity = async (dateStr) => {
+        setLoadingActivity(true);
+        setSelectedDate(dateStr);
+        try {
+            const res = await apiClient.get(`/stats/activity/${dateStr}`);
+            if (res.data.success) {
+                setDayActivity(res.data.data);
+            }
+        } catch (err) {
+            console.error('Error fetching day activity:', err);
+            alert('No se pudo cargar la actividad del día');
+        } finally {
+            setLoadingActivity(false);
+        }
+    };
+
     if (loading || !stats) return (
         <AdminLayout title="Dashboard Principal">
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
@@ -212,7 +238,7 @@ export default function AdminDashboard() {
         </AdminLayout>
     );
 
-    const { notifications: n, users, streets, calendar, unassignedNotifs, courierStats, urgency } = stats;
+    const { notifications: n, users, streets, calendar, courierStats, urgency } = stats;
 
     return (
         <AdminLayout title="Dashboard Principal">
@@ -330,9 +356,10 @@ export default function AdminDashboard() {
                     padding: 4px 6px;
                     background: #f8fafc;
                     border: 1px solid #f1f5f9;
-                    transition: background 0.15s;
+                    transition: all 0.15s;
                 }
-                .cal-day:hover { background: #eff6ff; }
+                .cal-clickable { cursor: pointer; border: 1px solid #bfdbfe; }
+                .cal-clickable:hover { background: #eff6ff; transform: scale(1.02); z-index: 2; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
                 .cal-today { border: 2px solid #3182ce; background: #eff6ff; }
                 .cal-other-month { opacity: 0.35; }
                 .cal-day-num { font-size: 0.75rem; font-weight: 700; color: #64748b; display: block; margin-bottom: 2px; }
@@ -351,12 +378,33 @@ export default function AdminDashboard() {
                 .cal-day-single { text-align: center; padding: 24px 0; }
                 .cal-day-single h4 { color: #1a365d; text-transform: capitalize; margin-bottom: 24px; }
                 .day-stat-row { display: flex; justify-content: center; gap: 32px; }
-                .day-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+                .day-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px; border-radius: 12px; transition: background 0.2s; }
                 .day-stat-num { font-size: 2.5rem; font-weight: 800; }
                 .day-stat.green .day-stat-num { color: #10B981; }
                 .day-stat.blue .day-stat-num { color: #3182ce; }
                 .day-stat.gray .day-stat-num { color: #64748b; }
                 .day-stat span:last-child { font-size: 0.8rem; color: #94a3b8; font-weight: 600; }
+
+                /* Activity Modal */
+                .act-modal-overlay {
+                    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                    background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+                    display: flex; justify-content: center; align-items: center; z-index: 2000;
+                }
+                .act-modal {
+                    background: white; border-radius: 20px; width: 90%; max-width: 900px;
+                    max-height: 85vh; display: flex; flex-direction: column; overflow: hidden;
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                }
+                .act-modal-header { padding: 24px 32px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+                .act-modal-header h3 { margin: 0; font-size: 1.25rem; color: #1e293b; }
+                .act-modal-body { padding: 32px; overflow-y: auto; flex: 1; }
+                .act-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+                .act-table th { background: #f8fafc; padding: 12px; text-align: left; font-weight: 700; color: #64748b; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; font-size: 0.75rem; }
+                .act-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+                .act-row:hover { background: #f8fafc; }
+                .btn-close-modal { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 16px; cursor: pointer; color: #64748b; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; }
+                .btn-close-modal:hover { background: #e2e8f0; color: #1e293b; }
 
                 /* Courier chart */
                 .courier-chart { display: flex; flex-direction: column; gap: 14px; }
@@ -366,23 +414,6 @@ export default function AdminDashboard() {
                 .courier-bar-fill { height: 100%; background: #bfdbfe; border-radius: 6px; position: relative; min-width: 2px; }
                 .courier-bar-delivered { position: absolute; left: 0; top: 0; height: 100%; background: #10B981; border-radius: 6px; }
                 .courier-stats { font-size: 0.75rem; color: #64748b; text-align: right; }
-
-                /* Unassigned list */
-                .unassigned-list { max-height: 280px; overflow-y: auto; }
-                .unassigned-item {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    padding: 10px 0;
-                    border-bottom: 1px solid #f1f5f9;
-                    gap: 8px;
-                }
-                .unassigned-item:last-child { border-bottom: none; }
-                .unassigned-id { font-family: monospace; font-weight: 700; font-size: 0.8rem; color: #3182ce; flex-shrink: 0; }
-                .unassigned-info { flex: 1; }
-                .unassigned-info p { margin: 0; font-size: 0.85rem; color: #1e293b; font-weight: 600; }
-                .unassigned-info small { color: #94a3b8; font-size: 0.75rem; }
-                .unassigned-days { font-size: 0.75rem; background: #fee2e2; color: #991b1b; border-radius: 6px; padding: 2px 8px; font-weight: 700; flex-shrink: 0; }
             `}</style>
 
             {/* KPI Cards Row */}
@@ -438,12 +469,13 @@ export default function AdminDashboard() {
             <div className="dash-card" style={{ marginBottom: '24px' }}>
                 <div className="dash-card-header">
                     <span className="dash-card-title">📅 Actividad de Entregas</span>
-                    <small style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Últimos 90 días</small>
+                    <small style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Últimos 90 días · Pulsa un día para ver listado</small>
                 </div>
                 <ActivityCalendar
                     calendarData={calendar}
                     view={calView}
                     onViewChange={setCalView}
+                    onDayClick={fetchDayActivity}
                 />
             </div>
 
@@ -457,6 +489,63 @@ export default function AdminDashboard() {
                     <CourierChart data={courierStats} />
                 </div>
             </div>
+
+            {/* Activity Modal */}
+            {dayActivity && (
+                <div className="act-modal-overlay" onClick={() => setDayActivity(null)}>
+                    <div className="act-modal" onClick={e => e.stopPropagation()}>
+                        <div className="act-modal-header">
+                            <h3>Actividad del {new Date(selectedDate + 'T00:00:00').toLocaleDateString()}</h3>
+                            <button className="btn-close-modal" onClick={() => setDayActivity(null)}>✕</button>
+                        </div>
+                        <div className="act-modal-body">
+                            {dayActivity.length === 0 ? (
+                                <p>No hay actividad registrada para este día.</p>
+                            ) : (
+                                <table className="act-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Hora</th>
+                                            <th>ID</th>
+                                            <th>Destinatario</th>
+                                            <th>Acción / Resultado</th>
+                                            <th>Repartidor</th>
+                                            <th>Obs.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {dayActivity.map((row, i) => (
+                                            <tr key={i} className="act-row">
+                                                <td style={{ fontWeight: 600 }}>{new Date(row.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                                                <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#3182ce' }}>#{row.notification_id}</td>
+                                                <td>
+                                                    <div style={{ fontWeight: 600 }}>{row.recipient_name}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{row.full_address}</div>
+                                                </td>
+                                                <td>
+                                                    <span className={`status-pill ${row.status_result === 'DELIVERED' ? 'status-delivered' : 'status-other'}`}>
+                                                        {row.status_result === 'DELIVERED' ? 'ENTREGADA' : row.status_result}
+                                                    </span>
+                                                </td>
+                                                <td style={{ fontSize: '0.85rem' }}>{row.courier_name}</td>
+                                                <td style={{ fontStyle: 'italic', fontSize: '0.8rem', color: '#64748b' }}>{row.notes || '-'}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                        <div style={{ padding: '16px 32px', textAlign: 'right', background: '#f8fafc' }}>
+                            <button 
+                                onClick={() => setDayActivity(null)}
+                                style={{ padding: '10px 24px', borderRadius: '10px', background: 'white', border: '1px solid #e2e8f0', cursor: 'pointer', fontWeight: 700 }}
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AdminLayout>
     );
 }
