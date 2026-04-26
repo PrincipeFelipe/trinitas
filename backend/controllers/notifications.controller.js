@@ -500,7 +500,7 @@ const generatePdf = async (req, res, next) => {
 
 const getUploadDates = async (req, res, next) => {
     try {
-        const [rows] = await pool.query('SELECT DISTINCT DATE(created_at) as upload_date FROM notifications ORDER BY upload_date DESC');
+        const [rows] = await pool.query('SELECT DISTINCT DATE_FORMAT(created_at, "%Y-%m-%d") as upload_date FROM notifications ORDER BY upload_date DESC');
         res.json({ success: true, data: rows.map(r => r.upload_date) });
     } catch (error) {
         next(error);

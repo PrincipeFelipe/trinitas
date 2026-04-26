@@ -16,8 +16,7 @@ export default function NotificationsReport() {
                 if (res.data.success) {
                     setUploadDates(res.data.data);
                     if (res.data.data.length > 0) {
-                        const firstDate = new Date(res.data.data[0]).toISOString().split('T')[0];
-                        setSelectedDate(firstDate);
+                        setSelectedDate(res.data.data[0]);
                     }
                 }
             } catch (err) {
@@ -51,7 +50,10 @@ export default function NotificationsReport() {
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '-';
-        return new Date(dateStr).toLocaleString();
+        // Use a more predictable formatting for display
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        return date.toLocaleString();
     };
 
     const getStatusLabel = (status) => {
@@ -147,8 +149,8 @@ export default function NotificationsReport() {
                 ) : (
                     <select value={selectedDate} onChange={e => setSelectedDate(e.target.value)}>
                         {uploadDates.map(date => (
-                            <option key={date} value={new Date(date).toISOString().split('T')[0]}>
-                                {new Date(date).toLocaleDateString()}
+                            <option key={date} value={date}>
+                                {new Date(date + 'T00:00:00').toLocaleDateString()}
                             </option>
                         ))}
                     </select>
