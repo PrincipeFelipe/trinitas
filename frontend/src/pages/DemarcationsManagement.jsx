@@ -144,7 +144,9 @@ export default function DemarcationsManagement() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {demarcations.map(dem => (
+                                {demarcations
+                                    .filter(d => !form.user_id || d.user_id === parseInt(form.user_id))
+                                    .map(dem => (
                                     <tr key={dem.id}>
                                         <td style={{ fontWeight: 500, color: 'var(--primary)' }}>{dem.user_name}</td>
                                         <td>{dem.street_name}</td>
