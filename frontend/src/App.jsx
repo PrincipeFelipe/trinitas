@@ -10,6 +10,7 @@ import StreetsManagement from './pages/StreetsManagement';
 import DemarcationsManagement from './pages/DemarcationsManagement';
 import UsersManagement from './pages/UsersManagement';
 import NotificationsList from './pages/NotificationsList';
+import NotificationsReport from './pages/NotificationsReport';
 import './index.css';
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
@@ -79,6 +80,14 @@ function App() {
                         element={
                             <ProtectedRoute adminOnly={true}>
                                 <UsersManagement />
+                            </ProtectedRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/reports" 
+                        element={
+                            <ProtectedRoute adminOnly={true}>
+                                <NotificationsReport />
                             </ProtectedRoute>
                         } 
                     />

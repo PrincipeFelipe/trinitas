@@ -39,6 +39,11 @@ export default function AdminLayout({ children, title }) {
                             </Link>
                         </li>
                         <li>
+                            <Link to="/reports" className={isActive('/reports')}>
+                                <span className="icon">📊</span> Relación de Carga
+                            </Link>
+                        </li>
+                        <li>
                             <Link to="/streets" className={isActive('/streets')}>
                                 <span className="icon">🛣️</span> Calles / BD
                             </Link>

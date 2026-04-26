@@ -56,8 +56,13 @@ const generateReceiptPDF = async (notification_id) => {
         attempts.forEach(att => {
             doc.fontSize(12).font('Helvetica-Bold').text(`Intento #${att.attempt_number} - ${att.status_result}`, { underline: true });
             doc.font('Helvetica').text(`Repartidor: ${att.courier_name || 'Desconocido'}`);
-            doc.text(`Fecha Registrada: ${new Date(att.created_at).toLocaleString()}`);
+            doc.text(`Fecha Registrada: ${new Date(att.timestamp).toLocaleString()}`);
             
+            if (att.notes) {
+                doc.font('Helvetica-Oblique').text(`Observaciones: ${att.notes}`);
+                doc.font('Helvetica');
+            }
+
             if (att.status_result === 'DELIVERED') {
                 doc.text(`Receptor Oficial: ${att.receiver_name} (DNI: ${att.receiver_dni})`);
                 if (att.signature_base64) {

@@ -113,6 +113,7 @@ function DeliveryAction({ item, onBack }) {
     const [action, setAction] = useState(null);
     const [receiverName, setReceiverName] = useState('');
     const [receiverDni, setReceiverDni] = useState('');
+    const [notes, setNotes] = useState('');
     const canvasRef = useRef(null);
     const sigPadRef = useRef(null);
     const [submitting, setSubmitting] = useState(false);
@@ -163,7 +164,8 @@ function DeliveryAction({ item, onBack }) {
                 status_result,
                 receiver_name: receiverName,
                 receiver_dni: receiverDni,
-                signature_base64
+                signature_base64,
+                notes
             });
             alert('Operación registrada exitosamente');
             onBack();
@@ -189,6 +191,15 @@ function DeliveryAction({ item, onBack }) {
 
                 {!action && (
                     <div className="action-buttons">
+                        <div className="input-group" style={{ marginBottom: '16px' }}>
+                            <label>Observaciones / Incidencias</label>
+                            <textarea 
+                                value={notes} 
+                                onChange={e => setNotes(e.target.value)}
+                                style={{ width: '100%', height: '80px', borderRadius: '8px', border: '1px solid #ddd', padding: '8px', fontSize: '0.9rem' }}
+                                placeholder="Escribe aquí cualquier observación..."
+                            />
+                        </div>
                         <button className="btn-huge btn-negative" onClick={() => handleSubmit('ABSENT')} disabled={submitting}>Ausente</button>
                         <button className="btn-huge btn-negative" onClick={() => handleSubmit('REFUSED')} disabled={submitting}>Rehusado</button>
                         <button className="btn-huge btn-negative" onClick={() => handleSubmit('UNKNOWN')} disabled={submitting}>Desconocido</button>

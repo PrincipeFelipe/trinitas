@@ -17,5 +17,7 @@ router.put('/reassign', verifyToken, requireAdmin, notificationsController.reass
 router.post('/reassign-all', verifyToken, requireAdmin, notificationsController.reassignAll);
 router.get('/details/:id', verifyToken, requireAdmin, notificationsController.getNotificationDetails);
 router.get('/generate-pdf/:id', verifyToken, requireAdmin, notificationsController.generatePdf);
+router.get('/upload-dates', verifyToken, requireAdmin, notificationsController.getUploadDates);
+router.get('/report/:date', verifyToken, requireAdmin, notificationsController.getReportByDate);
 
 module.exports = router;

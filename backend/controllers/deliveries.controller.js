@@ -28,7 +28,7 @@ const getMyRoute = async (req, res, next) => {
 const recordAttempt = async (req, res, next) => {
     try {
         const { notification_id } = req.params;
-        const { status_result, receiver_name, receiver_dni, signature_base64 } = req.body;
+        const { status_result, receiver_name, receiver_dni, signature_base64, notes } = req.body;
         const user_id = req.user.id;
 
         if (!status_result) {
@@ -47,9 +47,9 @@ const recordAttempt = async (req, res, next) => {
 
         // Insert Attempt Log
         await pool.query(`
-            INSERT INTO delivery_attempts (notification_id, attempt_number, status_result, receiver_name, receiver_dni, signature_base64, delivered_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `, [notification_id, newAttemptNumber, status_result, receiver_name || null, receiver_dni || null, signature_base64 || null, user_id]);
+            INSERT INTO delivery_attempts (notification_id, attempt_number, status_result, receiver_name, receiver_dni, signature_base64, delivered_by, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, [notification_id, newAttemptNumber, status_result, receiver_name || null, receiver_dni || null, signature_base64 || null, user_id, notes || null]);
 
         // Determine new Notification Status
         let newNotificationStatus = 'PENDING';

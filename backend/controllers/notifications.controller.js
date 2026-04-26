@@ -498,4 +498,57 @@ const generatePdf = async (req, res, next) => {
     }
 };
 
-module.exports = { uploadNotifications, extractStreetsOnly, assignManual, addNewStreets, bulkAssignByStreet, listNotifications, reassignUser, reassignAll, getNotificationDetails, generatePdf };
+const getUploadDates = async (req, res, next) => {
+    try {
+        const [rows] = await pool.query('SELECT DISTINCT DATE(created_at) as upload_date FROM notifications ORDER BY upload_date DESC');
+        res.json({ success: true, data: rows.map(r => r.upload_date) });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getReportByDate = async (req, res, next) => {
+    try {
+        const { date } = req.params;
+        const query = `
+            SELECT 
+                n.id, 
+                n.recipient_name, 
+                n.full_address, 
+                n.status,
+                n.created_at as upload_date,
+                da1.timestamp as first_attempt_date,
+                da2.timestamp as second_attempt_date,
+                u.name as courier_name,
+                da1.status_result as first_status,
+                da2.status_result as second_status,
+                da1.notes as first_notes,
+                da2.notes as second_notes
+            FROM notifications n
+            LEFT JOIN delivery_attempts da1 ON n.id = da1.notification_id AND da1.attempt_number = 1
+            LEFT JOIN delivery_attempts da2 ON n.id = da2.notification_id AND da2.attempt_number = 2
+            LEFT JOIN users u ON n.assigned_user_id = u.id
+            WHERE DATE(n.created_at) = ?
+            ORDER BY n.id ASC
+        `;
+        const [rows] = await pool.query(query, [date]);
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = { 
+    uploadNotifications, 
+    extractStreetsOnly, 
+    assignManual, 
+    addNewStreets, 
+    bulkAssignByStreet, 
+    listNotifications, 
+    reassignUser, 
+    reassignAll, 
+    getNotificationDetails, 
+    generatePdf,
+    getUploadDates,
+    getReportByDate
+};
