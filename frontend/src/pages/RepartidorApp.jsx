@@ -64,23 +64,45 @@ function RouteList({ route, onSelect, user, onLogout }) {
                 {user && <p style={{ margin: '4px 0 2px', opacity: 0.85, fontSize: '0.9rem' }}>👤 {user.name}</p>}
                 <p>Mi Ruta de Hoy: <strong>{route.length} pendientes</strong></p>
             </header>
+            <style>{`
+                .mobile-card.border-safe { border-left: 5px solid #48bb78; }
+                .mobile-card.border-warning { border-left: 5px solid #ed8936; }
+                .mobile-card.border-expired { border-left: 5px solid #e53e3e; }
+                
+                .urgency-label { font-size: 0.7rem; font-weight: 700; margin-top: 4px; display: block; }
+                .urgency-safe { color: #2f855a; }
+                .urgency-warning { color: #c05621; }
+                .urgency-expired { color: #c53030; }
+            `}</style>
             <div className="mobile-body">
                 {route.length === 0 ? (
                     <p className="empty-state">No tienes notificaciones pendientes para hoy.</p>
                 ) : (
-                    route.map(item => (
-                        <div key={item.id} className="mobile-card" onClick={() => onSelect(item)}>
-                            <div className="card-header">
-                                <span className="item-id">#{item.id}</span>
-                                <span className={`attempt-pill attempt-${item.current_attempt_number}`}>
-                                    Intento {item.current_attempt_number}
-                                </span>
+                    route.map(item => {
+                        const daysElapsed = Math.floor((new Date() - new Date(item.created_at)) / (1000 * 60 * 60 * 24));
+                        const daysRemaining = 8 - daysElapsed;
+                        
+                        let urgency = 'safe';
+                        if (daysRemaining <= 3) urgency = 'expired';
+                        else if (daysRemaining < 6) urgency = 'warning';
+
+                        const urgencyText = daysRemaining < 0 ? 'Expirada' : `Plazo: ${daysRemaining} días`;
+
+                        return (
+                            <div key={item.id} className={`mobile-card border-${urgency}`} onClick={() => onSelect(item)}>
+                                <div className="card-header">
+                                    <span className="item-id">#{item.id}</span>
+                                    <span className={`attempt-pill attempt-${item.current_attempt_number}`}>
+                                        Intento {item.current_attempt_number}
+                                    </span>
+                                </div>
+                                <h3 className="recipient-name">{item.recipient_name}</h3>
+                                <p className="full-address">{item.full_address}</p>
+                                <p className="street-name">Calle: {item.street_name || 'Sin asignar'}</p>
+                                <span className={`urgency-label urgency-${urgency}`}>{urgencyText}</span>
                             </div>
-                            <h3 className="recipient-name">{item.recipient_name}</h3>
-                            <p className="full-address">{item.full_address}</p>
-                            <p className="street-name">Calle: {item.street_name || 'Sin asignar'}</p>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
         </div>

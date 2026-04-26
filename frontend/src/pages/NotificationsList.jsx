@@ -160,8 +160,9 @@ export default function NotificationsList() {
                     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
                     border-color: #e2e8f0; 
                 }
-                .notif-list-card.border-warning { border-left-color: #f6ad55; background: #fffcf9; }
-                .notif-list-card.border-expired { border-left-color: #fc8181; background: #fffafb; }
+                .notif-list-card.border-safe { border-left-color: #48bb78; background: #f0fff4; }
+                .notif-list-card.border-warning { border-left-color: #ed8936; background: #fffaf0; }
+                .notif-list-card.border-expired { border-left-color: #e53e3e; background: #fff5f5; }
                 
                 .expiration-badge { 
                     margin-top: 5px; 
@@ -172,10 +173,11 @@ export default function NotificationsList() {
                     font-size: 0.65rem; 
                     font-weight: 800; 
                     text-transform: uppercase; 
-                    letter-spacing: 0.025em; 
+                    letter-spacing: 0.05em; 
                 }
-                .expiration-badge.warning { background: #feebc8; color: #9c4221; }
-                .expiration-badge.expired { background: #fed7d7; color: #9b2c2c; }
+                .expiration-badge.safe { background: #c6f6d5; color: #22543d; }
+                .expiration-badge.warning { background: #feebc8; color: #7b341e; }
+                .expiration-badge.expired { background: #fed7d7; color: #822727; }
 
                 .notif-list-card .col { display: flex; flex-direction: column; gap: 6px; }
                 .status-button-wrapper { display: flex; align-items: center; gap: 16px; margin-top: 2px; }
@@ -393,14 +395,17 @@ export default function NotificationsList() {
                             let daysRemaining = null;
                             if (isPending && n.created_at) {
                                 const daysElapsed = Math.floor((new Date() - new Date(n.created_at)) / (1000 * 60 * 60 * 24));
-                                daysRemaining = 12 - daysElapsed;
+                                daysRemaining = 8 - daysElapsed;
                             }
-                            const isWarning = daysRemaining !== null && daysRemaining <= 3 && daysRemaining >= 0;
-                            const isExpired = daysRemaining !== null && daysRemaining < 0;
+
+                            let urgency = 'safe'; // green
+                            if (daysRemaining !== null) {
+                                if (daysRemaining <= 3) urgency = 'expired'; // red
+                                else if (daysRemaining < 6) urgency = 'warning'; // orange
+                            }
 
                             let cardClass = "notif-list-card";
-                            if (isExpired) cardClass += " border-expired";
-                            else if (isWarning) cardClass += " border-warning";
+                            if (isPending) cardClass += ` border-${urgency}`;
 
                             return (
                                 <div key={n.id} className={cardClass}>
@@ -439,8 +444,11 @@ export default function NotificationsList() {
                                                 <span className="status-badge" style={{ background: statusLabels[n.status]?.color || '#999' }}>
                                                     {statusLabels[n.status]?.label || n.status}
                                                 </span>
-                                                {isExpired && <span className="expiration-badge expired">Expirada</span>}
-                                                {isWarning && <span className="expiration-badge warning">Quedan {daysRemaining} días</span>}
+                                                {isPending && daysRemaining !== null && (
+                                                    <span className={`expiration-badge ${urgency}`}>
+                                                        {daysRemaining < 0 ? 'Expirada' : `Días restantes: ${daysRemaining}`}
+                                                    </span>
+                                                )}
                                             </div>
                                             
                                             {/* Desktop details button */}
