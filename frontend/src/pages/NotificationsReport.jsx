@@ -16,7 +16,8 @@ export default function NotificationsReport() {
                 if (res.data.success) {
                     setUploadDates(res.data.data);
                     if (res.data.data.length > 0) {
-                        setSelectedDate(res.data.data[0]);
+                        const firstDate = new Date(res.data.data[0]).toISOString().split('T')[0];
+                        setSelectedDate(firstDate);
                     }
                 }
             } catch (err) {
