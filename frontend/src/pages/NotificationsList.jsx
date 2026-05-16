@@ -113,9 +113,24 @@ export default function NotificationsList() {
             if (!window.confirm('Vas a exportar muchas notificaciones. Esto puede tardar un poco. ¿Continuar?')) return;
         }
         
-        const pairs = filtered.map(n => `${n.id}|${n.company}`).join(',');
-        const token = localStorage.getItem('token');
-        window.open(`${apiClient.defaults.baseURL}/notifications/generate-bulk-pdf?pairs=${pairs}&token=${token}`, '_blank');
+        const pairs = filtered.map(n => [n.id, n.company]);
+        
+        try {
+            const response = await apiClient.post('/notifications/generate-bulk-pdf', { pairs }, {
+                responseType: 'blob'
+            });
+            
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `export_notificaciones_${new Date().getTime()}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (err) {
+            console.error(err);
+            alert('Error al generar el PDF masivo');
+        }
     };
 
     const isPending = (status) => ['PENDIENTE', '1ER_INTENTO'].includes(status);

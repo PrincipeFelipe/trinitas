@@ -533,12 +533,17 @@ const generatePdf = async (req, res, next) => {
 
 const generateBulkPdf = async (req, res, next) => {
     try {
-        const { pairs: pairsString } = req.query;
-        if (!pairsString) {
+        const { pairs: pairsInput } = req.body;
+        if (!pairsInput) {
             return res.status(400).json({ success: false, error: 'No se proporcionaron datos' });
         }
 
-        const pairs = pairsString.split(',').map(p => p.split('|')); // Array de [id, company]
+        // Si viene como string (formato antiguo o compatibilidad), lo parseamos. 
+        // Si viene ya como array de arrays, lo usamos directamente.
+        const pairs = typeof pairsInput === 'string' 
+            ? pairsInput.split(',').map(p => p.split('|'))
+            : pairsInput; 
+
 
         // Get all notifications data
         const [notifRows] = await pool.query(`
