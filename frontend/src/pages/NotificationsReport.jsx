@@ -3,6 +3,16 @@ import apiClient from '../api/client';
 import AdminLayout from '../components/AdminLayout';
 import * as XLSX from 'xlsx';
 
+const COMPANIES = {
+    'ENERGIA_CEUTA': { name: 'Energía Ceuta XXI Comercializadora de Referencia, S.A.U.', cif: 'A51031920' },
+    'ALUMBRADO_CEUTA': { name: 'Alumbrado Eléctrico de Ceuta Energía, S.L.', cif: 'B72775513' }
+};
+
+const COMPANY_SHORT_NAMES = {
+    'ENERGIA_CEUTA': 'Energía Ceuta',
+    'ALUMBRADO_CEUTA': 'Alumbrado Eléctrico'
+};
+
 export default function NotificationsReport() {
     const [uploadDates, setUploadDates] = useState([]);
     const [selectedDate, setSelectedDate] = useState('');
@@ -13,6 +23,10 @@ export default function NotificationsReport() {
     // Modal state
     const [selectedItem, setSelectedItem] = useState(null);
     const [loadingItem, setLoadingItem] = useState(false);
+
+    const [filterCompany, setFilterCompany] = useState('ALL');
+    const [filterStatus, setFilterStatus] = useState('ALL'); // 'ALL' or 'MANAGED'
+    const [search, setSearch] = useState('');
 
     useEffect(() => {
         const fetchDates = async () => {
@@ -53,10 +67,23 @@ export default function NotificationsReport() {
         fetchReport();
     }, [selectedDate]);
 
-    const handleRowClick = async (id) => {
+    // Computed filtered data
+    const filteredData = reportData.filter(row => {
+        const companyMatch = filterCompany === 'ALL' || row.company === filterCompany;
+        const statusMatch = filterStatus === 'ALL' || row.status !== 'PENDIENTE';
+        const searchMatch = !search || 
+            row.recipient_name.toLowerCase().includes(search.toLowerCase()) ||
+            row.id.toLowerCase().includes(search.toLowerCase()) ||
+            row.full_address.toLowerCase().includes(search.toLowerCase());
+        
+        return companyMatch && statusMatch && searchMatch;
+    });
+
+    const handleRowClick = async (id, company) => {
+        if (loadingItem) return;
         setLoadingItem(true);
         try {
-            const res = await apiClient.get(`/notifications/details/${id}`);
+            const res = await apiClient.get(`/notifications/details/${id}?company=${company}`);
             if (res.data.success) {
                 setSelectedItem(res.data.data);
             }
@@ -69,10 +96,11 @@ export default function NotificationsReport() {
     };
 
     const handleExportExcel = () => {
-        if (reportData.length === 0) return;
+        if (filteredData.length === 0) return;
 
-        const dataToExport = reportData.map(row => ({
+        const dataToExport = filteredData.map(row => ({
             'ID Notificación': row.id,
+            'Empresa': row.company ? COMPANIES[row.company]?.name : 'No especificada',
             'Destinatario': row.recipient_name,
             'Dirección': row.full_address,
             'Estado': getStatusLabel(row.status),
@@ -83,7 +111,7 @@ export default function NotificationsReport() {
             '2do Intento': formatDate(row.second_attempt_date),
             'Resultado 2do Intento': row.second_status || '-',
             'Observaciones 2do Intento': row.second_notes || '-',
-            'Entregada': row.status === 'DELIVERED' ? 'SÍ' : 'NO',
+            'Entregada': row.status === 'ENTREGADA' ? 'SÍ' : 'NO',
             'Repartidor': row.courier_name || 'Sin asignar'
         }));
 
@@ -97,7 +125,10 @@ export default function NotificationsReport() {
         ws['!cols'] = columnWidths;
 
         XLSX.utils.book_append_sheet(wb, ws, "Relación de Carga");
-        XLSX.writeFile(wb, `Relacion_Carga_${selectedDate}.xlsx`);
+        
+        const fileSuffix = filterStatus === 'MANAGED' ? '_SoloGestionados' : '_Todo';
+        const companySuffix = filterCompany === 'ALL' ? '_TodasEmpresas' : `_${filterCompany}`;
+        XLSX.writeFile(wb, `Relacion_Carga_${selectedDate}${companySuffix}${fileSuffix}.xlsx`);
     };
 
     const formatDate = (dateStr) => {
@@ -109,11 +140,14 @@ export default function NotificationsReport() {
 
     const getStatusLabel = (status) => {
         const labels = {
-            'PENDING': 'Pendiente',
-            'ATTEMPT_1': '1er Intento',
-            'DELIVERED': 'Entregada',
-            'RETURNED': 'Devuelta',
-            'FAILED': 'Fallida'
+            'PENDIENTE': 'Pendiente',
+            '1ER_INTENTO': '1er Intento',
+            'ENTREGADA': 'Entregada',
+            'DEVUELTA': 'Devuelta',
+            'FALLIDA': 'Fallida',
+            'AUSENTE': 'Ausente',
+            'REHUSADO': 'Rehusado',
+            'DESCONOCIDO': 'Desconocido'
         };
         return labels[status] || status;
     };
@@ -326,20 +360,56 @@ export default function NotificationsReport() {
 
             <div className="report-header-actions">
                 <div className="report-controls">
-                    <label>Fecha de Carga:</label>
-                    {loadingDates ? (
-                        <span>Cargando...</span>
-                    ) : (
-                        <select value={selectedDate} onChange={e => setSelectedDate(e.target.value)}>
-                            {uploadDates.map(date => (
-                                <option key={date} value={date}>
-                                    {new Date(date + 'T00:00:00').toLocaleDateString()}
-                                </option>
-                            ))}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <label>Fecha:</label>
+                        {loadingDates ? (
+                            <span>...</span>
+                        ) : (
+                            <select value={selectedDate} onChange={e => setSelectedDate(e.target.value)} style={{ minWidth: '130px' }}>
+                                {uploadDates.map(date => (
+                                    <option key={date} value={date}>
+                                        {new Date(date + 'T00:00:00').toLocaleDateString()}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <label>Empresa:</label>
+                        <select value={filterCompany} onChange={e => setFilterCompany(e.target.value)} style={{ minWidth: '150px' }}>
+                            <option value="ALL">Todas</option>
+                            <option value="ALUMBRADO_CEUTA">Alumbrado</option>
+                            <option value="ENERGIA_CEUTA">Energía</option>
                         </select>
-                    )}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <label>Mostrar:</label>
+                        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ minWidth: '150px' }}>
+                            <option value="ALL">Todo (incl. Pendientes)</option>
+                            <option value="MANAGED">Solo Gestionados</option>
+                        </select>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, marginLeft: '16px' }}>
+                        <label>🔍 Buscar:</label>
+                        <input 
+                            type="text" 
+                            placeholder="Nombre, ID o dirección..." 
+                            value={search} 
+                            onChange={e => setSearch(e.target.value)}
+                            style={{ 
+                                padding: '8px 12px', 
+                                borderRadius: '8px', 
+                                border: '1px solid #e2e8f0', 
+                                flex: 1,
+                                fontSize: '0.95rem'
+                            }} 
+                        />
+                    </div>
                 </div>
-                <button className="btn-export" onClick={handleExportExcel} disabled={reportData.length === 0}>
+                <button className="btn-export" onClick={handleExportExcel} disabled={filteredData.length === 0}>
                     <span>📊</span> Exportar a Excel
                 </button>
             </div>
@@ -354,6 +424,7 @@ export default function NotificationsReport() {
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>Empresa</th>
                                 <th>Destinatario</th>
                                 <th>Estado</th>
                                 <th>1er Intento</th>
@@ -364,17 +435,18 @@ export default function NotificationsReport() {
                             </tr>
                         </thead>
                         <tbody>
-                            {reportData.map(row => {
-                                const isDelivered = row.status === 'DELIVERED';
+                            {filteredData.map(row => {
+                                const isDelivered = row.status === 'ENTREGADA';
                                 return (
-                                    <tr key={row.id} onClick={() => handleRowClick(row.id)}>
+                                    <tr key={`${row.id}-${row.company}`} onClick={() => handleRowClick(row.id, row.company)}>
                                         <td style={{ fontWeight: 700, fontFamily: 'monospace' }}>{row.id}</td>
+                                        <td style={{ fontSize: '0.8rem', color: '#1a6fb5', fontWeight: 600 }}>{row.company ? COMPANY_SHORT_NAMES[row.company] : '-'}</td>
                                         <td>{row.recipient_name}</td>
                                         <td>
                                             <span className={`status-pill ${
                                                 isDelivered ? 'status-delivered' : 
-                                                row.status === 'PENDING' ? 'status-pending' :
-                                                row.status === 'RETURNED' ? 'status-return' : 'status-other'
+                                                row.status === 'PENDIENTE' ? 'status-pending' :
+                                                row.status === 'DEVUELTA' ? 'status-return' : 'status-other'
                                             }`}>
                                                 {getStatusLabel(row.status)}
                                             </span>
@@ -416,6 +488,10 @@ export default function NotificationsReport() {
                                     <span>{selectedItem.recipient_name}</span>
                                 </div>
                                 <div className="detail-item" style={{ gridColumn: 'span 2' }}>
+                                    <label>Empresa Emisora</label>
+                                    <span>{selectedItem.company ? COMPANIES[selectedItem.company]?.name : 'No especificada'}</span>
+                                </div>
+                                <div className="detail-item" style={{ gridColumn: 'span 2' }}>
                                     <label>Dirección</label>
                                     <span>{selectedItem.full_address}</span>
                                 </div>
@@ -425,7 +501,7 @@ export default function NotificationsReport() {
                                 </div>
                                 <div className="detail-item">
                                     <label>Estado Actual</label>
-                                    <span className={`status-pill ${selectedItem.status === 'DELIVERED' ? 'status-delivered' : 'status-other'}`} style={{ display: 'inline-block', marginTop: '8px' }}>
+                                    <span className={`status-pill ${selectedItem.status === 'ENTREGADA' ? 'status-delivered' : 'status-other'}`} style={{ display: 'inline-block', marginTop: '8px' }}>
                                         {getStatusLabel(selectedItem.status)}
                                     </span>
                                 </div>
@@ -446,7 +522,7 @@ export default function NotificationsReport() {
                                                 <label>Gestionado por</label>
                                                 <span>{att.delivered_by_name || 'N/A'}</span>
                                             </div>
-                                            {att.status_result === 'DELIVERED' && (
+                                            {att.status_result === 'ENTREGADA' && (
                                                 <>
                                                     <div className="detail-item">
                                                         <label>Recibido por</label>

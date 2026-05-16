@@ -8,7 +8,7 @@ const { verifyToken } = require('../middlewares/auth');
 router.get('/history', verifyToken, async (req, res, next) => {
     try {
         const [rows] = await pool.query(`
-            SELECT id, recipient_name, full_address, status 
+            SELECT id, recipient_name, full_address, status, company
             FROM notifications 
             WHERE status IN ('DELIVERED', 'RETURNED')
             ORDER BY id DESC
@@ -21,7 +21,13 @@ router.get('/history', verifyToken, async (req, res, next) => {
 
 router.get('/:id', verifyToken, (req, res) => {
     const { id } = req.params;
-    const filePath = path.join(__dirname, '../../backend/uploads/receipts', `${id}.pdf`);
+    const { company } = req.query;
+
+    if (!company) {
+        return res.status(400).json({ success: false, error: 'Missing company parameter' });
+    }
+
+    const filePath = path.join(__dirname, '../../backend/uploads/receipts', `${id}-${company}.pdf`);
 
     if (fs.existsSync(filePath)) {
         res.sendFile(filePath);

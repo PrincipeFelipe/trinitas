@@ -9,7 +9,7 @@ const getMyRoute = async (req, res, next) => {
             FROM notifications n
             LEFT JOIN streets s ON n.street_id = s.id
             WHERE assigned_user_id = ? 
-              AND status NOT IN ('DELIVERED', 'RETURNED')
+              AND status NOT IN ('ENTREGADA', 'DEVUELTA')
         `;
         const [rows] = await pool.query(query, [req.user.id]);
         
@@ -28,11 +28,11 @@ const getMyRoute = async (req, res, next) => {
 const recordAttempt = async (req, res, next) => {
     try {
         const { notification_id } = req.params;
-        const { status_result, receiver_name, receiver_dni, signature_base64, notes } = req.body;
+        const { status_result, receiver_name, receiver_dni, signature_base64, notes, company } = req.body;
         const user_id = req.user.id;
 
-        if (!status_result) {
-            return res.status(400).json({ success: false, error: 'status_result is required' });
+        if (!status_result || !company) {
+            return res.status(400).json({ success: false, error: 'status_result and company are required' });
         }
 
         // Count previous attempts
@@ -45,22 +45,25 @@ const recordAttempt = async (req, res, next) => {
 
         const newAttemptNumber = attemptCount + 1;
 
+        const insertValues = [notification_id, company, newAttemptNumber, status_result, receiver_name || null, receiver_dni || null, signature_base64 || null, user_id, notes || null];
+        console.log('Inserting into delivery_attempts:', insertValues);
+
         // Insert Attempt Log
         await pool.query(`
-            INSERT INTO delivery_attempts (notification_id, attempt_number, status_result, receiver_name, receiver_dni, signature_base64, delivered_by, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `, [notification_id, newAttemptNumber, status_result, receiver_name || null, receiver_dni || null, signature_base64 || null, user_id, notes || null]);
+            INSERT INTO delivery_attempts (notification_id, company, attempt_number, status_result, receiver_name, receiver_dni, signature_base64, delivered_by, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, insertValues);
 
         // Determine new Notification Status
-        let newNotificationStatus = 'PENDING';
-        if (status_result === 'DELIVERED') {
-            newNotificationStatus = 'DELIVERED';
+        let newNotificationStatus = 'PENDIENTE';
+        if (status_result === 'ENTREGADA') {
+            newNotificationStatus = 'ENTREGADA';
         } else {
             // Failed attempt logic
             if (newAttemptNumber === 1) {
-                newNotificationStatus = 'ATTEMPT_1';
+                newNotificationStatus = '1ER_INTENTO';
             } else if (newAttemptNumber === 2) {
-                newNotificationStatus = 'RETURNED';
+                newNotificationStatus = 'DEVUELTA';
             }
         }
 
@@ -68,9 +71,9 @@ const recordAttempt = async (req, res, next) => {
         await pool.query('UPDATE notifications SET status = ? WHERE id = ?', [newNotificationStatus, notification_id]);
 
         // Trigger PDF Compilation if finalized
-        if (newNotificationStatus === 'DELIVERED' || newNotificationStatus === 'RETURNED') {
+        if (newNotificationStatus === 'ENTREGADA' || newNotificationStatus === 'DEVUELTA') {
             const { generateReceiptPDF } = require('../utils/pdfGenerator');
-            generateReceiptPDF(notification_id).catch(err => console.error(err));
+            generateReceiptPDF(notification_id, company).catch(err => console.error(err));
         }
 
         res.json({ success: true, message: 'Attempt registered', new_status: newNotificationStatus });

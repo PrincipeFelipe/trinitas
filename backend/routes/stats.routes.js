@@ -9,11 +9,11 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
         const [[notifStats]] = await pool.query(`
             SELECT 
                 COUNT(*) as total,
-                SUM(CASE WHEN status = 'DELIVERED' THEN 1 ELSE 0 END) as delivered,
-                SUM(CASE WHEN status = 'RETURNED' THEN 1 ELSE 0 END) as returned,
+                SUM(CASE WHEN status = 'ENTREGADA' THEN 1 ELSE 0 END) as delivered,
+                SUM(CASE WHEN status = 'DEVUELTA' THEN 1 ELSE 0 END) as returned,
                 SUM(CASE WHEN assigned_user_id IS NULL THEN 1 ELSE 0 END) as unassigned_count,
-                SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END) as pending,
-                SUM(CASE WHEN status = 'ATTEMPT_1' THEN 1 ELSE 0 END) as attempt1
+                SUM(CASE WHEN status = 'PENDIENTE' THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN status = '1ER_INTENTO' THEN 1 ELSE 0 END) as attempt1
             FROM notifications
         `);
 
@@ -38,7 +38,7 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
             SELECT 
                 DATE_FORMAT(timestamp, '%Y-%m-%d') as day,
                 COUNT(*) as attempts,
-                SUM(CASE WHEN status_result = 'DELIVERED' THEN 1 ELSE 0 END) as delivered
+                SUM(CASE WHEN status_result = 'ENTREGADA' THEN 1 ELSE 0 END) as delivered
             FROM delivery_attempts
             WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 90 DAY)
             GROUP BY day
@@ -49,7 +49,7 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
         const [unassignedNotifs] = await pool.query(`
             SELECT id, recipient_name, full_address, created_at
             FROM notifications
-            WHERE assigned_user_id IS NULL AND status NOT IN ('DELIVERED', 'RETURNED')
+            WHERE assigned_user_id IS NULL AND status NOT IN ('ENTREGADA', 'DEVUELTA')
             ORDER BY created_at ASC
             LIMIT 20
         `);
@@ -58,9 +58,9 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
         const [courierStats] = await pool.query(`
             SELECT 
                 u.name,
-                COUNT(DISTINCT n.id) as total_assigned,
-                SUM(CASE WHEN n.status = 'DELIVERED' THEN 1 ELSE 0 END) as delivered,
-                SUM(CASE WHEN n.status = 'RETURNED' THEN 1 ELSE 0 END) as returned
+                COUNT(DISTINCT CONCAT(n.id, n.company)) as total_assigned,
+                SUM(CASE WHEN n.status = 'ENTREGADA' THEN 1 ELSE 0 END) as delivered,
+                SUM(CASE WHEN n.status = 'DEVUELTA' THEN 1 ELSE 0 END) as returned
             FROM users u
             LEFT JOIN notifications n ON n.assigned_user_id = u.id
             WHERE u.role = 'REPARTIDOR'
@@ -74,7 +74,7 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
                 SUM(CASE WHEN DATEDIFF(NOW(), created_at) BETWEEN 3 AND 4 THEN 1 ELSE 0 END) as warning,
                 SUM(CASE WHEN DATEDIFF(NOW(), created_at) >= 5 THEN 1 ELSE 0 END) as critical
             FROM notifications
-            WHERE status NOT IN ('DELIVERED', 'RETURNED')
+            WHERE status NOT IN ('ENTREGADA', 'DEVUELTA')
         `);
 
         res.json({
@@ -122,9 +122,10 @@ router.get('/activity/:date', verifyToken, requireAdmin, async (req, res, next) 
                 n.id as notification_id,
                 n.recipient_name,
                 n.full_address,
+                n.company,
                 u.name as courier_name
             FROM delivery_attempts da
-            JOIN notifications n ON da.notification_id = n.id
+            JOIN notifications n ON da.notification_id = n.id AND da.company = n.company
             LEFT JOIN users u ON da.delivered_by = u.id
             WHERE DATE(da.timestamp) = ?
             ORDER BY da.timestamp DESC

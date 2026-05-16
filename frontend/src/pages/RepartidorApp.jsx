@@ -89,7 +89,7 @@ function RouteList({ route, onSelect, user, onLogout }) {
                         const urgencyText = daysRemaining < 0 ? 'Expirada' : `Plazo: ${daysRemaining} días`;
 
                         return (
-                            <div key={item.id} className={`mobile-card border-${urgency}`} onClick={() => onSelect(item)}>
+                            <div key={`${item.id}-${item.company}`} className={`mobile-card border-${urgency}`} onClick={() => onSelect(item)}>
                                 <div className="card-header">
                                     <span className="item-id">#{item.id}</span>
                                     <span className={`attempt-pill attempt-${item.current_attempt_number}`}>
@@ -111,7 +111,7 @@ function RouteList({ route, onSelect, user, onLogout }) {
 
 function DeliveryAction({ item, onBack }) {
     const [action, setAction] = useState(null);
-    const [receiverName, setReceiverName] = useState('');
+    const [receiverName, setReceiverName] = useState(item.recipient_name || '');
     const [receiverDni, setReceiverDni] = useState('');
     const [notes, setNotes] = useState('');
     const canvasRef = useRef(null);
@@ -120,7 +120,7 @@ function DeliveryAction({ item, onBack }) {
 
     // Initialize SignaturePad when delivery form is shown
     useEffect(() => {
-        if (action === 'DELIVERED' && canvasRef.current) {
+        if (action === 'ENTREGADA' && canvasRef.current) {
             // Resize canvas to fill wrapper
             const canvas = canvasRef.current;
             const ratio = Math.max(window.devicePixelRatio || 1, 1);
@@ -145,7 +145,7 @@ function DeliveryAction({ item, onBack }) {
         setSubmitting(true);
 
         let signature_base64 = null;
-        if (status_result === 'DELIVERED') {
+        if (status_result === 'ENTREGADA') {
             if (!receiverName || !receiverDni) {
                 alert('Por favor rellena Nombre y DNI del receptor.');
                 setSubmitting(false);
@@ -165,7 +165,8 @@ function DeliveryAction({ item, onBack }) {
                 receiver_name: receiverName,
                 receiver_dni: receiverDni,
                 signature_base64,
-                notes
+                notes,
+                company: item.company
             });
             alert('Operación registrada exitosamente');
             onBack();
@@ -175,6 +176,16 @@ function DeliveryAction({ item, onBack }) {
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const getStatusLabel = (status) => {
+        const labels = {
+            'ENTREGADA': 'Entregada',
+            'AUSENTE': 'Ausente',
+            'REHUSADO': 'Rehusado',
+            'DESCONOCIDO': 'Desconocido'
+        };
+        return labels[status] || status;
     };
 
     return (
@@ -200,19 +211,24 @@ function DeliveryAction({ item, onBack }) {
                                 placeholder="Escribe aquí cualquier observación..."
                             />
                         </div>
-                        <button className="btn-huge btn-negative" onClick={() => handleSubmit('ABSENT')} disabled={submitting}>Ausente</button>
-                        <button className="btn-huge btn-negative" onClick={() => handleSubmit('REFUSED')} disabled={submitting}>Rehusado</button>
-                        <button className="btn-huge btn-negative" onClick={() => handleSubmit('UNKNOWN')} disabled={submitting}>Desconocido</button>
+                        <button className="btn-huge btn-negative" onClick={() => handleSubmit('AUSENTE')} disabled={submitting}>Ausente</button>
+                        <button className="btn-huge btn-negative" onClick={() => handleSubmit('REHUSADO')} disabled={submitting}>Rehusado</button>
+                        <button className="btn-huge btn-negative" onClick={() => handleSubmit('DESCONOCIDO')} disabled={submitting}>Desconocido</button>
                         <hr className="divider" />
-                        <button className="btn-huge btn-positive" onClick={() => setAction('DELIVERED')}>Entregado</button>
+                        <button className="btn-huge btn-positive" onClick={() => setAction('ENTREGADA')}>Entregado</button>
                     </div>
                 )}
 
-                {action === 'DELIVERED' && (
+                {action === 'ENTREGADA' && (
                     <div className="delivery-form">
                         <div className="input-group">
                             <label>Nombre del Receptor</label>
-                            <input type="text" value={receiverName} onChange={e => setReceiverName(e.target.value)} />
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <input type="text" value={receiverName} onChange={e => setReceiverName(e.target.value)} style={{ flex: 1 }} />
+                                <button type="button" onClick={() => setReceiverName('')} style={{ padding: '8px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#64748b', fontWeight: 'bold' }} title="Limpiar">
+                                    ✕
+                                </button>
+                            </div>
                         </div>
                         <div className="input-group">
                             <label>D.N.I. Receptor</label>
@@ -230,7 +246,7 @@ function DeliveryAction({ item, onBack }) {
                             <button className="btn-clear" onClick={() => sigPadRef.current?.clear()}>Limpiar Firma</button>
                         </div>
 
-                        <button className="btn-huge btn-positive" onClick={() => handleSubmit('DELIVERED')} disabled={submitting}>
+                        <button className="btn-huge btn-positive" onClick={() => handleSubmit('ENTREGADA')} disabled={submitting}>
                             {submitting ? 'Guardando...' : 'Confirmar y Guardar Entrega'}
                         </button>
                         <button className="btn-huge btn-secondary mt-10" onClick={() => setAction(null)}>Cancelar</button>

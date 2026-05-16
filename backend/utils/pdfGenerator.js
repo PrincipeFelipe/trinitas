@@ -9,15 +9,20 @@ if (!fs.existsSync(RECEIPTS_DIR)) {
     fs.mkdirSync(RECEIPTS_DIR, { recursive: true });
 }
 
-const generateReceiptPDF = async (notification_id) => {
+const COMPANIES = {
+    'ENERGIA_CEUTA': { name: 'Energía Ceuta XXI Comercializadora de Referencia, S.A.U.', cif: 'A51031920' },
+    'ALUMBRADO_CEUTA': { name: 'Alumbrado Eléctrico de Ceuta Energía, S.L.', cif: 'B72775513' }
+};
+
+const generateReceiptPDF = async (notification_id, company) => {
     try {
         // Query full data
         const [notifRows] = await pool.query(`
             SELECT n.*, s.name as street_name 
             FROM notifications n 
             LEFT JOIN streets s ON n.street_id = s.id 
-            WHERE n.id = ?
-        `, [notification_id]);
+            WHERE n.id = ? AND n.company = ?
+        `, [notification_id, company]);
         
         if (notifRows.length === 0) return;
         const notification = notifRows[0];
@@ -26,20 +31,24 @@ const generateReceiptPDF = async (notification_id) => {
             SELECT da.*, u.name as courier_name 
             FROM delivery_attempts da 
             LEFT JOIN users u ON da.delivered_by = u.id 
-            WHERE da.notification_id = ? 
+            WHERE da.notification_id = ? AND da.company = ?
             ORDER BY da.attempt_number ASC
-        `, [notification_id]);
+        `, [notification_id, company]);
 
         const doc = new PDFDocument({ margin: 50 });
-        const filePath = path.join(RECEIPTS_DIR, `${notification_id}.pdf`);
+        const filePath = path.join(RECEIPTS_DIR, `${notification_id}-${company}.pdf`);
         const stream = fs.createWriteStream(filePath);
 
         doc.pipe(stream);
 
         // Header
-        doc.fontSize(20).font('Helvetica-Bold').text('ACUSE DE RECIBO - TRINITAS', { align: 'center' });
+        const companyData = COMPANIES[notification.company] || { name: 'Trinitas', cif: '' };
+        doc.fontSize(16).font('Helvetica-Bold').text(companyData.name, { align: 'center' });
+        if (companyData.cif) doc.fontSize(10).font('Helvetica').text(`CIF: ${companyData.cif}`, { align: 'center' });
+        doc.moveDown(0.5);
+        doc.fontSize(18).font('Helvetica-Bold').text('ACUSE DE RECIBO', { align: 'center' });
         doc.moveDown();
-        doc.moveTo(50, 90).lineTo(550, 90).stroke();
+        doc.moveTo(50, 110).lineTo(550, 110).stroke();
         doc.moveDown(2);
 
         // Notification Info
@@ -63,7 +72,7 @@ const generateReceiptPDF = async (notification_id) => {
                 doc.font('Helvetica');
             }
 
-            if (att.status_result === 'DELIVERED') {
+            if (att.status_result === 'ENTREGADA') {
                 doc.text(`Receptor Oficial: ${att.receiver_name} (DNI: ${att.receiver_dni})`);
                 if (att.signature_base64) {
                     doc.moveDown();

@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import apiClient from '../api/client';
 import AdminLayout from '../components/AdminLayout';
 
+const COMPANIES = {
+    'ENERGIA_CEUTA': { name: 'Energía Ceuta XXI Comercializadora de Referencia, S.A.U.', cif: 'A51031920' },
+    'ALUMBRADO_CEUTA': { name: 'Alumbrado Eléctrico de Ceuta Energía, S.L.', cif: 'B72775513' }
+};
+
+const COMPANY_SHORT_NAMES = {
+    'ENERGIA_CEUTA': 'Energía Ceuta',
+    'ALUMBRADO_CEUTA': 'Alumbrado Eléctrico'
+};
+
 export default function NotificationsList() {
     const [notifications, setNotifications] = useState([]);
     const [users, setUsers] = useState([]);
@@ -9,6 +19,7 @@ export default function NotificationsList() {
     const [search, setSearch] = useState('');
     const [filterUser, setFilterUser] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
+    const [filterCompany, setFilterCompany] = useState('');
     const [selectedDetail, setSelectedDetail] = useState(null);
     const [detailLoading, setDetailLoading] = useState(false);
 
@@ -30,15 +41,16 @@ export default function NotificationsList() {
         fetchData();
     }, []);
 
-    const handleReassign = async (notificationId, newUserId) => {
+    const handleReassign = async (notificationId, newUserId, company) => {
         try {
             const res = await apiClient.put('/notifications/reassign', {
                 notification_id: notificationId,
-                user_id: newUserId || null
+                user_id: newUserId || null,
+                company: company
             });
             if (res.data.success) {
                 setNotifications(prev => prev.map(n => {
-                    if (n.id === notificationId) {
+                    if (n.id === notificationId && n.company === company) {
                         const user = users.find(u => u.id === parseInt(newUserId));
                         return { ...n, assigned_user_id: newUserId ? parseInt(newUserId) : null, assigned_user_name: user?.name || null };
                     }
@@ -69,11 +81,11 @@ export default function NotificationsList() {
         }
     };
 
-    const viewDetails = async (id) => {
+    const viewDetails = async (id, company) => {
         if (detailLoading) return;
         setDetailLoading(id); // Store ID of loading item
         try {
-            const res = await apiClient.get(`/notifications/details/${id}`);
+            const res = await apiClient.get(`/notifications/details/${id}?company=${company}`);
             if (res.data.success) {
                 setSelectedDetail(res.data.data);
             }
@@ -85,40 +97,58 @@ export default function NotificationsList() {
         }
     };
 
-    const handleDownloadPdf = async (id) => {
+    const handleDownloadPdf = async (id, company) => {
         try {
-            const res = await apiClient.get(`/notifications/generate-pdf/${id}`, { responseType: 'blob' });
-            const url = window.URL.createObjectURL(new Blob([res.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `acuse_${id}.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const token = localStorage.getItem('token');
+            window.open(`${apiClient.defaults.baseURL}/notifications/generate-pdf/${id}?company=${company}&token=${token}`, '_blank');
         } catch (err) {
             console.error("Error downloading PDF", err);
             alert('Error al descargar el PDF');
         }
     };
 
+    const handleDownloadBulkPdf = () => {
+        if (filtered.length === 0) return alert('No hay notificaciones para exportar');
+        if (filtered.length > 200) {
+            if (!window.confirm('Vas a exportar muchas notificaciones. Esto puede tardar un poco. ¿Continuar?')) return;
+        }
+        
+        const ids = filtered.map(n => n.id).join(',');
+        const token = localStorage.getItem('token');
+        window.open(`${apiClient.defaults.baseURL}/notifications/generate-bulk-pdf?ids=${ids}&token=${token}`, '_blank');
+    };
+
+    const isPending = (status) => ['PENDIENTE', '1ER_INTENTO'].includes(status);
+
     const filtered = notifications.filter(n => {
+        const companyName = n.company ? COMPANY_SHORT_NAMES[n.company] : '';
         const matchesSearch = !search || 
             n.id.includes(search) ||
             n.recipient_name.toLowerCase().includes(search.toLowerCase()) ||
             n.full_address.toLowerCase().includes(search.toLowerCase()) ||
-            (n.street_name && n.street_name.toLowerCase().includes(search.toLowerCase()));
+            (n.street_name && n.street_name.toLowerCase().includes(search.toLowerCase())) ||
+            companyName.toLowerCase().includes(search.toLowerCase());
         const matchesUser = !filterUser || String(n.assigned_user_id) === filterUser;
-        const matchesStatus = !filterStatus || n.status === filterStatus;
-        return matchesSearch && matchesUser && matchesStatus;
+        let matchesStatus = !filterStatus || n.status === filterStatus;
+        if (filterStatus === 'SOLO_GESTIONADOS') {
+            matchesStatus = !isPending(n.status);
+        }
+        const matchesCompany = !filterCompany || n.company === filterCompany;
+        return matchesSearch && matchesUser && matchesStatus && matchesCompany;
     });
 
     const statusLabels = {
-        'PENDING': { label: 'Pendiente', color: '#e67e22' },
-        'ATTEMPT_1': { label: '1er Intento', color: '#3498db' },
-        'DELIVERED': { label: 'Entregada', color: '#27ae60' },
-        'RETURNED': { label: 'Devuelta', color: '#e74c3c' },
-        'FAILED': { label: 'Fallida', color: '#95a5a6' },
+        'PENDIENTE': { label: 'Pendiente', color: '#e67e22' },
+        '1ER_INTENTO': { label: '1er Intento', color: '#3498db' },
+        'ENTREGADA': { label: 'Entregada', color: '#27ae60' },
+        'DEVUELTA': { label: 'Devuelta', color: '#e74c3c' },
+        'FALLIDA': { label: 'Fallida', color: '#95a5a6' },
+        'AUSENTE': { label: 'Ausente', color: '#e67e22' },
+        'REHUSADO': { label: 'Rehusado', color: '#e74c3c' },
+        'DESCONOCIDO': { label: 'Desconocido', color: '#95a5a6' }
     };
+
+
 
     // Group by user for summary
     const userSummary = {};
@@ -147,7 +177,7 @@ export default function NotificationsList() {
                     border-radius: 16px; 
                     padding: 20px 24px; 
                     display: grid; 
-                    grid-template-columns: 80px 1.5fr 2fr 1.2fr 1.2fr 1fr; 
+                    grid-template-columns: 80px 1fr 1.5fr 2fr 1.2fr 1.2fr 1fr; 
                     gap: 24px; 
                     align-items: center; 
                     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
@@ -292,7 +322,7 @@ export default function NotificationsList() {
                 }
 
                 @media (max-width: 1200px) {
-                    .notif-list-card { grid-template-columns: 80px 1.2fr 1.5fr 1fr 1fr 180px; }
+                    .notif-list-card { grid-template-columns: 80px 1fr 1.2fr 1.5fr 1fr 1fr 120px; }
                     .notif-list-card .hide-tablet { display: none; }
                 }
 
@@ -374,9 +404,19 @@ export default function NotificationsList() {
                             </select>
                         </div>
                         <div className="filter-group">
+                            <label>Empresa</label>
+                            <select value={filterCompany} onChange={e => setFilterCompany(e.target.value)}>
+                                <option value="">Todas</option>
+                                {Object.entries(COMPANY_SHORT_NAMES).map(([key, name]) => (
+                                    <option key={key} value={key}>{name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="filter-group">
                             <label>Estado</label>
                             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
                                 <option value="">Todos</option>
+                                <option value="SOLO_GESTIONADOS">Gestionados (Omitir pendientes)</option>
                                 {Object.entries(statusLabels).map(([key, { label }]) => (
                                     <option key={key} value={key}>{label}</option>
                                 ))}
@@ -384,14 +424,29 @@ export default function NotificationsList() {
                         </div>
                     </div>
 
-                    <div className="notif-count">
-                        Mostrando <strong>{filtered.length}</strong> de {notifications.length} notificaciones
+                    <div className="notif-count" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>Mostrando <strong>{filtered.length}</strong> de {notifications.length} notificaciones</span>
+                        <button className="btn-bulk-pdf" onClick={handleDownloadBulkPdf} style={{ 
+                            background: '#1a6fb5', 
+                            color: '#fff', 
+                            border: 'none', 
+                            padding: '8px 16px', 
+                            borderRadius: '8px', 
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                        }}>
+                            📄 Exportar Listado PDF
+                        </button>
                     </div>
 
                     {/* List Cards */}
                     <div className="notif-list-cards">
                         {filtered.map(n => {
-                            const isPending = ['PENDING', 'ATTEMPT_1'].includes(n.status);
+                            const isPending = ['PENDIENTE', '1ER_INTENTO'].includes(n.status);
                             let daysRemaining = null;
                             if (isPending && n.created_at) {
                                 const daysElapsed = Math.floor((new Date() - new Date(n.created_at)) / (1000 * 60 * 60 * 24));
@@ -408,10 +463,14 @@ export default function NotificationsList() {
                             if (isPending) cardClass += ` border-${urgency}`;
 
                             return (
-                                <div key={n.id} className={cardClass}>
+                                <div key={`${n.id}-${n.company}`} className={cardClass}>
                                     <div className="col">
                                         <div className="fl">ID</div>
                                         <div className="fv id-text">{n.id}</div>
+                                    </div>
+                                    <div className="col">
+                                        <div className="fl">Empresa</div>
+                                        <div className="fv" style={{ fontSize: '0.8rem', color: '#1a6fb5' }}>{n.company ? COMPANY_SHORT_NAMES[n.company] : '-'}</div>
                                     </div>
                                     <div className="col">
                                         <div className="fl">Destinatario</div>
@@ -430,7 +489,7 @@ export default function NotificationsList() {
                                         <select
                                             className="reassign-select"
                                             value={n.assigned_user_id || ''}
-                                            onChange={e => handleReassign(n.id, e.target.value)}
+                                            onChange={e => handleReassign(n.id, e.target.value, n.company)}
                                             onClick={e => e.stopPropagation()}
                                         >
                                             <option value="">— Sin asignar —</option>
@@ -453,9 +512,16 @@ export default function NotificationsList() {
                                             
                                             {/* Desktop details button */}
                                             <button 
+                                                className="btn-pdf desktop-only" 
+                                                title="Descargar PDF" 
+                                                onClick={(e) => { e.stopPropagation(); handleDownloadPdf(n.id, n.company); }}
+                                            >
+                                                📄
+                                            </button>
+                                            <button 
                                                 className="btn-view desktop-only" 
                                                 title="Ver detalles" 
-                                                onClick={() => viewDetails(n.id)}
+                                                onClick={() => viewDetails(n.id, n.company)}
                                                 disabled={detailLoading === n.id}
                                             >
                                                 {detailLoading === n.id ? '⌛' : '🔎'}
@@ -469,9 +535,16 @@ export default function NotificationsList() {
                                             {/* Spacer for layout */}
                                         </div>
                                         <button 
+                                            className="btn-pdf mobile-only" 
+                                            title="Descargar PDF" 
+                                            onClick={(e) => { e.stopPropagation(); handleDownloadPdf(n.id, n.company); }}
+                                        >
+                                            📄
+                                        </button>
+                                        <button 
                                             className="btn-view mobile-only" 
                                             title="Ver detalles" 
-                                            onClick={() => viewDetails(n.id)}
+                                            onClick={() => viewDetails(n.id, n.company)}
                                             disabled={detailLoading === n.id}
                                         >
                                             {detailLoading === n.id ? '⌛' : '🔎'}
@@ -489,8 +562,8 @@ export default function NotificationsList() {
                                 <div className="modal-header">
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                         <h2>Detalles de Notificación #{selectedDetail.id}</h2>
-                                        {['DELIVERED', 'RETURNED', 'FAILED'].includes(selectedDetail.status) && (
-                                            <button className="btn-download-pdf" onClick={() => handleDownloadPdf(selectedDetail.id)}>
+                                        {['ENTREGADA', 'DEVUELTA', 'FALLIDA'].includes(selectedDetail.status) && (
+                                            <button className="btn-download-pdf" onClick={() => handleDownloadPdf(selectedDetail.id, selectedDetail.company)}>
                                                 📄 PDF
                                             </button>
                                         )}
@@ -504,6 +577,10 @@ export default function NotificationsList() {
                                             <div className="detail-item">
                                                 <label>Destinatario</label>
                                                 <span>{selectedDetail.recipient_name}</span>
+                                            </div>
+                                            <div className="detail-item">
+                                                <label>Empresa Emisora</label>
+                                                <span>{selectedDetail.company ? COMPANIES[selectedDetail.company]?.name : 'No especificada'}</span>
                                             </div>
                                             <div className="detail-item">
                                                 <label>Dirección</label>
@@ -530,7 +607,7 @@ export default function NotificationsList() {
                                         <h3>Historial de Intentos</h3>
                                         {selectedDetail.attempts && selectedDetail.attempts.length > 0 ? (
                                             selectedDetail.attempts.map((attempt) => (
-                                                <div key={attempt.id} className={`attempt-card ${attempt.status_result === 'DELIVERED' ? 'delivered' : ''}`}>
+                                                <div key={attempt.id} className={`attempt-card ${attempt.status_result === 'ENTREGADA' ? 'delivered' : ''}`}>
                                                     <div className="attempt-header">
                                                         <span className="attempt-number">Intento {attempt.attempt_number}</span>
                                                         <span className="attempt-date">
@@ -549,7 +626,7 @@ export default function NotificationsList() {
                                                         </div>
                                                     </div>
 
-                                                    {attempt.status_result === 'DELIVERED' && (
+                                                    {attempt.status_result === 'ENTREGADA' && (
                                                         <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed #eee' }}>
                                                             <div className="detail-grid">
                                                                 <div className="detail-item">

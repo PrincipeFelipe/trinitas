@@ -4,6 +4,7 @@ import AdminLayout from '../components/AdminLayout';
 
 export default function UploadNotifications() {
     const [file, setFile] = useState(null);
+    const [company, setCompany] = useState('');
     const [isDragging, setIsDragging] = useState(false);
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState(null);
@@ -23,10 +24,11 @@ export default function UploadNotifications() {
     };
 
     const handleUpload = async () => {
-        if (!file) return;
+        if (!file || !company) return;
         setLoading(true);
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('company', company);
         try {
             const res = await apiClient.post('/notifications/upload', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
@@ -86,7 +88,9 @@ export default function UploadNotifications() {
         if (!streetId) return alert('Seleccione una calle');
         try {
             const res = await apiClient.post('/notifications/assign-manual', {
-                notification_id: notificationId, street_id: streetId
+                notification_id: notificationId, 
+                street_id: streetId,
+                company: company
             });
             if (res.data.success) {
                 setResults(prev => ({
@@ -159,10 +163,32 @@ export default function UploadNotifications() {
 
             <div className="upload-container">
                 <header className="upload-header">
-                    <p>Arrastre el informe diario delimitado (ancho fijo) con IDs, Nombres y Direcciones.</p>
+                    <p>Seleccione la empresa emisora y arrastre el informe diario delimitado (ancho fijo).</p>
                 </header>
 
                 {!results && (
+                    <div className="company-selector" style={{ marginBottom: '24px', background: '#fff', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                        <h3 style={{ marginBottom: '16px', fontSize: '1rem', color: '#333' }}>1. Seleccione la Empresa Emisora</h3>
+                        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '10px 16px', background: company === 'ENERGIA_CEUTA' ? '#eef6ff' : '#f8f9fa', border: `1px solid ${company === 'ENERGIA_CEUTA' ? '#1a6fb5' : '#ddd'}`, borderRadius: '8px', transition: 'all 0.2s', flex: '1', minWidth: '280px' }}>
+                                <input type="radio" name="company" value="ENERGIA_CEUTA" checked={company === 'ENERGIA_CEUTA'} onChange={e => setCompany(e.target.value)} style={{ width: '18px', height: '18px', accentColor: '#1a6fb5' }} />
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <span style={{ fontWeight: 600, color: '#333' }}>Energía Ceuta XXI Comercializadora de Referencia, S.A.U.</span>
+                                    <span style={{ fontSize: '0.8rem', color: '#666' }}>CIF: A51031920</span>
+                                </div>
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '10px 16px', background: company === 'ALUMBRADO_CEUTA' ? '#eef6ff' : '#f8f9fa', border: `1px solid ${company === 'ALUMBRADO_CEUTA' ? '#1a6fb5' : '#ddd'}`, borderRadius: '8px', transition: 'all 0.2s', flex: '1', minWidth: '280px' }}>
+                                <input type="radio" name="company" value="ALUMBRADO_CEUTA" checked={company === 'ALUMBRADO_CEUTA'} onChange={e => setCompany(e.target.value)} style={{ width: '18px', height: '18px', accentColor: '#1a6fb5' }} />
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <span style={{ fontWeight: 600, color: '#333' }}>Alumbrado Eléctrico de Ceuta Energía, S.L.</span>
+                                    <span style={{ fontSize: '0.8rem', color: '#666' }}>CIF: B72775513</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                )}
+
+                {!results && company && (
                     <div 
                         className={`dropzone ${isDragging ? 'active' : ''}`}
                         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -177,8 +203,8 @@ export default function UploadNotifications() {
                     </div>
                 )}
 
-                {file && !results && (
-                    <div style={{ textAlign: "center" }}>
+                {file && company && !results && (
+                    <div style={{ textAlign: "center", marginTop: "16px" }}>
                         <button className="btn-primary upload-btn" onClick={handleUpload} disabled={loading}>
                             {loading ? 'Procesando...' : 'Confirmar Subida'}
                         </button>
@@ -237,7 +263,7 @@ export default function UploadNotifications() {
                                 <div className="notif-cards">
                                     {results.unassigned.map(item => (
                                         <AssignmentCard 
-                                            key={item.id} 
+                                            key={`${item.id}-${company}`} 
                                             item={item} 
                                             streets={streets} 
                                             onAssign={handleManualAssign} 

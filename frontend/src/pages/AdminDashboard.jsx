@@ -507,6 +507,7 @@ export default function AdminDashboard() {
                                         <tr>
                                             <th>Hora</th>
                                             <th>ID</th>
+                                            <th>Empresa</th>
                                             <th>Destinatario</th>
                                             <th>Acción / Resultado</th>
                                             <th>Repartidor</th>
@@ -515,16 +516,17 @@ export default function AdminDashboard() {
                                     </thead>
                                     <tbody>
                                         {dayActivity.map((row, i) => (
-                                            <tr key={i} className="act-row">
+                                            <tr key={`${row.notification_id}-${row.company}-${row.timestamp}`} className="act-row">
                                                 <td style={{ fontWeight: 600 }}>{new Date(row.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                                                 <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#3182ce' }}>#{row.notification_id}</td>
+                                                <td style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1a6fb5' }}>{row.company === 'ENERGIA_CEUTA' ? 'Energía' : 'Alumbrado'}</td>
                                                 <td>
                                                     <div style={{ fontWeight: 600 }}>{row.recipient_name}</div>
                                                     <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{row.full_address}</div>
                                                 </td>
                                                 <td>
-                                                    <span className={`status-pill ${row.status_result === 'DELIVERED' ? 'status-delivered' : 'status-other'}`}>
-                                                        {row.status_result === 'DELIVERED' ? 'ENTREGADA' : row.status_result}
+                                                    <span className={`status-pill ${row.status_result === 'ENTREGADA' ? 'status-delivered' : 'status-other'}`}>
+                                                        {row.status_result}
                                                     </span>
                                                 </td>
                                                 <td style={{ fontSize: '0.85rem' }}>{row.courier_name}</td>

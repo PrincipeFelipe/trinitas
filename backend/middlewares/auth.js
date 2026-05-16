@@ -1,11 +1,16 @@
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
+    let token = null;
     const authHeader = req.headers['authorization'];
-    if (!authHeader) return res.status(401).json({ success: false, error: 'No token provided' });
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+    } else if (req.query && req.query.token) {
+        token = req.query.token;
+    }
 
-    const token = authHeader.split(' ')[1];
-    if (!token) return res.status(401).json({ success: false, error: 'Malformed token' });
+    if (!token) return res.status(401).json({ success: false, error: 'No token provided' });
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) return res.status(401).json({ success: false, error: 'Failed to authenticate token' });

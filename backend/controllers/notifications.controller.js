@@ -1,6 +1,17 @@
 const pool = require('../db/connection');
 const PDFDocument = require('pdfkit');
 
+const COMPANIES = {
+    'ENERGIA_CEUTA': {
+        name: 'Energía Ceuta XXI Comercializadora de Referencia, S.A.U.',
+        cif: 'A51031920'
+    },
+    'ALUMBRADO_CEUTA': {
+        name: 'Alumbrado Eléctrico de Ceuta Energía, S.L.',
+        cif: 'B72775513'
+    }
+};
+
 // ==========================================
 // Street Name Extraction Engine
 // ==========================================
@@ -107,6 +118,11 @@ const uploadNotifications = async (req, res, next) => {
         if (!req.file) {
             return res.status(400).json({ success: false, error: 'No file uploaded' });
         }
+        
+        const company = req.body.company;
+        if (!company || !COMPANIES[company]) {
+            return res.status(400).json({ success: false, error: 'Compañía inválida o no seleccionada' });
+        }
 
         // Smart encoding detection
         let fileContent = req.file.buffer.toString('utf-8');
@@ -133,8 +149,8 @@ const uploadNotifications = async (req, res, next) => {
         let unassigned = [];
         const newStreetsFound = new Set();
 
-        // Clear old notifications before re-import
-        await pool.query('DELETE FROM notifications');
+        // We no longer clear notifications automatically so multiple uploads (e.g. different companies) can coexist.
+        // Use the manual clear script or a button if you need to start fresh.
 
         for (const line of lines) {
             if (line.length < 45) continue;
@@ -169,9 +185,14 @@ const uploadNotifications = async (req, res, next) => {
             }
 
             await pool.query(`
-                INSERT IGNORE INTO notifications (id, recipient_name, full_address, street_id, assigned_user_id, status)
-                VALUES (?, ?, ?, ?, ?, 'PENDING')
-            `, [id, recipient_name, full_address, street_id, assigned_user_id]);
+                INSERT INTO notifications (id, recipient_name, full_address, street_id, assigned_user_id, status, company)
+                VALUES (?, ?, ?, ?, ?, 'PENDIENTE', ?)
+                ON DUPLICATE KEY UPDATE 
+                    recipient_name = VALUES(recipient_name),
+                    full_address = VALUES(full_address),
+                    street_id = VALUES(street_id),
+                    assigned_user_id = VALUES(assigned_user_id)
+            `, [id, recipient_name, full_address, street_id, assigned_user_id, company]);
         }
 
         res.json({
@@ -282,10 +303,10 @@ const bulkAssignByStreet = async (req, res, next) => {
 
 const assignManual = async (req, res, next) => {
     try {
-        const { notification_id, street_id } = req.body;
+        const { notification_id, street_id, company } = req.body;
         
-        if (!notification_id || !street_id) {
-            return res.status(400).json({ success: false, error: 'Missing parameters' });
+        if (!notification_id || !street_id || !company) {
+            return res.status(400).json({ success: false, error: 'Missing parameters (id, street, company)' });
         }
 
         const [demarcationRows] = await pool.query('SELECT user_id FROM demarcations WHERE street_id = ?', [street_id]);
@@ -313,6 +334,7 @@ const listNotifications = async (req, res, next) => {
                 n.assigned_user_id,
                 n.status,
                 n.created_at,
+                n.company,
                 s.name AS street_name,
                 u.name AS assigned_user_name
             FROM notifications n
@@ -328,16 +350,16 @@ const listNotifications = async (req, res, next) => {
 
 const reassignUser = async (req, res, next) => {
     try {
-        const { notification_id, user_id } = req.body;
-        if (!notification_id) {
-            return res.status(400).json({ success: false, error: 'Missing notification_id' });
-        }
+    const { notification_id, user_id, company } = req.body;
+    if (!notification_id || !company) {
+        return res.status(400).json({ success: false, error: 'Missing notification_id or company' });
+    }
 
-        // user_id can be null to unassign
-        await pool.query(
-            'UPDATE notifications SET assigned_user_id = ? WHERE id = ?',
-            [user_id || null, notification_id]
-        );
+    // user_id can be null to unassign
+    await pool.query(
+        'UPDATE notifications SET assigned_user_id = ? WHERE id = ?',
+        [user_id || null, notification_id]
+    );
 
         res.json({ success: true, message: 'Repartidor actualizado' });
     } catch (error) {
@@ -355,7 +377,7 @@ const reassignAll = async (req, res, next) => {
         }
 
         // Load all notifications
-        const [notifications] = await pool.query('SELECT id, street_id, assigned_user_id FROM notifications');
+        const [notifications] = await pool.query('SELECT id, street_id, assigned_user_id, company FROM notifications');
 
         let updated = 0;
         for (const n of notifications) {
@@ -375,6 +397,7 @@ const reassignAll = async (req, res, next) => {
 const getNotificationDetails = async (req, res, next) => {
     try {
         const { id } = req.params;
+        const { company } = req.query;
 
         // Get notification main data
         const [notifRows] = await pool.query(`
@@ -413,6 +436,7 @@ const getNotificationDetails = async (req, res, next) => {
 const generatePdf = async (req, res, next) => {
     try {
         const { id } = req.params;
+        const { company } = req.query;
 
         // Get notification main data
         const [notifRows] = await pool.query(`
@@ -446,7 +470,16 @@ const generatePdf = async (req, res, next) => {
 
         // Build the PDF content
         doc.fontSize(18).text('ACUSE DE RECIBO / NOTIFICACIÓN', { align: 'center' });
-        doc.moveDown(2);
+        doc.moveDown(1);
+        
+        const companyInfo = COMPANIES[notification.company];
+        if (companyInfo) {
+            doc.fontSize(11).font('Helvetica-Bold').text('Empresa Emisora: ', { continued: true }).font('Helvetica').text(companyInfo.name);
+            doc.font('Helvetica-Bold').text('CIF: ', { continued: true }).font('Helvetica').text(companyInfo.cif);
+            doc.moveDown(1.5);
+        } else {
+            doc.moveDown(1);
+        }
 
         doc.fontSize(12).font('Helvetica-Bold').text('ID Notificación: ', { continued: true }).font('Helvetica').text(notification.id);
         doc.font('Helvetica-Bold').text('Destinatario: ', { continued: true }).font('Helvetica').text(notification.recipient_name);
@@ -466,7 +499,7 @@ const generatePdf = async (req, res, next) => {
                 doc.font('Helvetica-Bold').text('Fecha/Hora: ', { continued: true }).font('Helvetica').text(new Date(attempt.timestamp).toLocaleString());
                 doc.font('Helvetica-Bold').text('Tramitado por: ', { continued: true }).font('Helvetica').text(attempt.delivered_by_name || 'N/A');
                 
-                if (attempt.status_result === 'DELIVERED') {
+                if (attempt.status_result === 'ENTREGADA') {
                     doc.font('Helvetica-Bold').text('Receptor: ', { continued: true }).font('Helvetica').text(attempt.receiver_name || '-');
                     doc.font('Helvetica-Bold').text('DNI: ', { continued: true }).font('Helvetica').text(attempt.receiver_dni || '-');
                     
@@ -498,6 +531,154 @@ const generatePdf = async (req, res, next) => {
     }
 };
 
+const generateBulkPdf = async (req, res, next) => {
+    try {
+        const { ids: idsString } = req.query;
+        if (!idsString) {
+            return res.status(400).json({ success: false, error: 'No se proporcionaron IDs' });
+        }
+
+        const ids = idsString.split(',');
+
+        // Get all notifications data
+        const [notifRows] = await pool.query(`
+            SELECT n.*, s.name as street_name, u.name as assigned_user_name
+            FROM notifications n
+            LEFT JOIN streets s ON n.street_id = s.id
+            LEFT JOIN users u ON n.assigned_user_id = u.id
+            WHERE n.id IN (?)
+            ORDER BY n.id ASC
+        `, [ids]);
+
+        if (notifRows.length === 0) {
+            return res.status(404).json({ success: false, error: 'No se encontraron notificaciones' });
+        }
+
+        // Get all attempts for these notifications
+        const [attemptRows] = await pool.query(`
+            SELECT da.*, u.name as delivered_by_name
+            FROM delivery_attempts da
+            LEFT JOIN users u ON da.delivered_by = u.id
+            WHERE da.notification_id IN (?)
+            ORDER BY da.notification_id ASC, da.attempt_number ASC
+        `, [ids]);
+
+        // Map attempts to notifications for easy access
+        const attemptsByNotif = {};
+        attemptRows.forEach(att => {
+            if (!attemptsByNotif[att.notification_id]) attemptsByNotif[att.notification_id] = [];
+            attemptsByNotif[att.notification_id].push(att);
+        });
+
+        const doc = new PDFDocument({ margin: 40 });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="export_notificaciones_${new Date().getTime()}.pdf"`);
+        doc.pipe(res);
+
+        // --- PAGE 1: SUMMARY LIST ---
+        doc.fontSize(18).font('Helvetica-Bold').text('RESUMEN DE NOTIFICACIONES', { align: 'center' });
+        doc.moveDown(1);
+        doc.fontSize(10).font('Helvetica').text(`Fecha de exportación: ${new Date().toLocaleString()}`, { align: 'right' });
+        doc.moveDown(1);
+
+        // Table Header
+        const startX = 40;
+        let currentY = doc.y;
+        doc.fontSize(9).font('Helvetica-Bold');
+        doc.text('ID', startX, currentY, { width: 50 });
+        doc.text('DESTINATARIO', startX + 60, currentY, { width: 150 });
+        doc.text('EMPRESA', startX + 220, currentY, { width: 100 });
+        doc.text('ESTADO', startX + 330, currentY, { width: 80 });
+        doc.text('REPARTIDOR', startX + 420, currentY, { width: 100 });
+        
+        doc.moveTo(startX, currentY + 12).lineTo(550, currentY + 12).stroke();
+        currentY += 20;
+
+        // Table Rows
+        doc.font('Helvetica');
+        notifRows.forEach(n => {
+            if (currentY > 700) {
+                doc.addPage();
+                currentY = 40;
+            }
+            doc.text(n.id, startX, currentY, { width: 50 });
+            doc.text(n.recipient_name, startX + 60, currentY, { width: 150, height: 12, ellipsis: true });
+            doc.text(n.company.replace('_', ' '), startX + 220, currentY, { width: 100 });
+            doc.text(n.status, startX + 330, currentY, { width: 80 });
+            doc.text(n.assigned_user_name || '-', startX + 420, currentY, { width: 100 });
+            currentY += 15;
+        });
+
+        // --- INDIVIDUAL RECEIPT PAGES ---
+        notifRows.forEach(notification => {
+            const attempts = attemptsByNotif[notification.id] || [];
+            
+            // Replicate the individual acuse logic for each notification
+            doc.addPage();
+            
+            doc.fontSize(18).font('Helvetica-Bold').text('ACUSE DE RECIBO / NOTIFICACIÓN', { align: 'center' });
+            doc.moveDown(1);
+            
+            const companyInfo = COMPANIES[notification.company];
+            if (companyInfo) {
+                doc.fontSize(11).font('Helvetica-Bold').text('Empresa Emisora: ', { continued: true }).font('Helvetica').text(companyInfo.name);
+                doc.font('Helvetica-Bold').text('CIF: ', { continued: true }).font('Helvetica').text(companyInfo.cif);
+                doc.moveDown(1.5);
+            } else {
+                doc.moveDown(1);
+            }
+
+            doc.fontSize(12).font('Helvetica-Bold').text('ID Notificación: ', { continued: true }).font('Helvetica').text(notification.id);
+            doc.font('Helvetica-Bold').text('Destinatario: ', { continued: true }).font('Helvetica').text(notification.recipient_name);
+            doc.font('Helvetica-Bold').text('Dirección: ', { continued: true }).font('Helvetica').text(notification.full_address);
+            doc.font('Helvetica-Bold').text('Repartidor: ', { continued: true }).font('Helvetica').text(notification.assigned_user_name || 'Sin asignar');
+            doc.font('Helvetica-Bold').text('Estado: ', { continued: true }).font('Helvetica').text(notification.status);
+            
+            doc.moveDown(2);
+            doc.fontSize(14).font('Helvetica-Bold').text('Historial de Intentos');
+            doc.moveDown(1);
+
+            if (attempts.length === 0) {
+                doc.fontSize(12).font('Helvetica').text('No hay intentos registrados.');
+            } else {
+                attempts.forEach(attempt => {
+                    doc.fontSize(12).font('Helvetica-Bold').text(`Intento ${attempt.attempt_number} - ${attempt.status_result}`);
+                    doc.font('Helvetica-Bold').text('Fecha/Hora: ', { continued: true }).font('Helvetica').text(new Date(attempt.timestamp).toLocaleString());
+                    doc.font('Helvetica-Bold').text('Tramitado por: ', { continued: true }).font('Helvetica').text(attempt.delivered_by_name || 'N/A');
+                    
+                    if (attempt.status_result === 'ENTREGADA') {
+                        doc.font('Helvetica-Bold').text('Receptor: ', { continued: true }).font('Helvetica').text(attempt.receiver_name || '-');
+                        doc.font('Helvetica-Bold').text('DNI: ', { continued: true }).font('Helvetica').text(attempt.receiver_dni || '-');
+                        
+                        if (attempt.signature_base64) {
+                            doc.moveDown(1);
+                            doc.font('Helvetica-Bold').text('Firma:');
+                            try {
+                                const base64Data = attempt.signature_base64.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
+                                const imgBuffer = Buffer.from(base64Data, 'base64');
+                                doc.image(imgBuffer, { fit: [200, 100] });
+                            } catch (err) {
+                                doc.font('Helvetica').text('(Error al cargar la imagen de la firma)');
+                            }
+                        }
+                    }
+                    doc.moveDown(1.5);
+                });
+            }
+        });
+
+        doc.end();
+
+    } catch (error) {
+        if (!res.headersSent) {
+            next(error);
+        } else {
+            console.error("Bulk PDF generation error: ", error);
+            res.end();
+        }
+    }
+};
+
 const getUploadDates = async (req, res, next) => {
     try {
         const [rows] = await pool.query('SELECT DISTINCT DATE_FORMAT(created_at, "%Y-%m-%d") as upload_date FROM notifications ORDER BY upload_date DESC');
@@ -516,6 +697,7 @@ const getReportByDate = async (req, res, next) => {
                 n.recipient_name, 
                 n.full_address, 
                 n.status,
+                n.company,
                 n.created_at as upload_date,
                 da1.timestamp as first_attempt_date,
                 da2.timestamp as second_attempt_date,
@@ -549,6 +731,7 @@ module.exports = {
     reassignAll, 
     getNotificationDetails, 
     generatePdf,
+    generateBulkPdf,
     getUploadDates,
     getReportByDate
 };
