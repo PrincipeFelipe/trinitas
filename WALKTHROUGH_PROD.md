@@ -16,14 +16,18 @@ En el servidor de producción, sitúate en la carpeta del proyecto y descarga lo
 git pull origin main
 ```
 
-### 2. Migración de Base de Datos (Crítico)
-Debido a que hemos cambiado la estructura de las notificaciones para que el `ID` sea único globalmente, es **obligatorio** ejecutar el script de migración en el servidor. Este script limpiará duplicados y ajustará las claves primarias.
+### 2. Preparar Base de Datos (Añadir columna empresa)
+Es posible que falte la columna `company` en algunas tablas. Ejecuta este script primero:
+```bash
+node migrate_company.js
+```
 
-Ejecuta desde la carpeta `backend`:
+### 3. Migración de Base de Datos (Unificar IDs)
+Ahora ejecuta el script para hacer que los IDs de notificación sean únicos a nivel global:
 ```bash
 node make_id_unique.js
 ```
-*Este script te informará si ha encontrado duplicados y si la migración se ha completado con éxito.*
+*Este script limpiará duplicados y ajustará las claves primarias.*
 
 ### 3. Instalación de Dependencias
 Asegúrate de tener todas las dependencias actualizadas:
