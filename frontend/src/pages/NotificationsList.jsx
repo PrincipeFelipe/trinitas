@@ -107,7 +107,7 @@ export default function NotificationsList() {
         }
     };
 
-    const handleDownloadBulkPdf = () => {
+    const handleDownloadBulkPdf = async () => {
         if (filtered.length === 0) return alert('No hay notificaciones para exportar');
         if (filtered.length > 200) {
             if (!window.confirm('Vas a exportar muchas notificaciones. Esto puede tardar un poco. ¿Continuar?')) return;
