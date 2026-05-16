@@ -113,9 +113,9 @@ export default function NotificationsList() {
             if (!window.confirm('Vas a exportar muchas notificaciones. Esto puede tardar un poco. ¿Continuar?')) return;
         }
         
-        const ids = filtered.map(n => n.id).join(',');
+        const pairs = filtered.map(n => `${n.id}|${n.company}`).join(',');
         const token = localStorage.getItem('token');
-        window.open(`${apiClient.defaults.baseURL}/notifications/generate-bulk-pdf?ids=${ids}&token=${token}`, '_blank');
+        window.open(`${apiClient.defaults.baseURL}/notifications/generate-bulk-pdf?pairs=${pairs}&token=${token}`, '_blank');
     };
 
     const isPending = (status) => ['PENDIENTE', '1ER_INTENTO'].includes(status);

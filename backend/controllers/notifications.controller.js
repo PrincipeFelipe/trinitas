@@ -288,8 +288,8 @@ const bulkAssignByStreet = async (req, res, next) => {
             const lookup = streetMap.get(item.extracted_street.toUpperCase());
             if (lookup) {
                 await pool.query(
-                    'UPDATE notifications SET street_id = ?, assigned_user_id = ? WHERE id = ?',
-                    [lookup.id, lookup.user_id, item.notification_id]
+                    'UPDATE notifications SET street_id = ?, assigned_user_id = ? WHERE id = ? AND company = ?',
+                    [lookup.id, lookup.user_id, item.notification_id, item.company]
                 );
                 assigned++;
             }
@@ -313,8 +313,8 @@ const assignManual = async (req, res, next) => {
         const user_id = demarcationRows.length > 0 ? demarcationRows[0].user_id : null;
 
         await pool.query(
-            'UPDATE notifications SET street_id = ?, assigned_user_id = ? WHERE id = ?',
-            [street_id, user_id, notification_id]
+            'UPDATE notifications SET street_id = ?, assigned_user_id = ? WHERE id = ? AND company = ?',
+            [street_id, user_id, notification_id, company]
         );
 
         res.json({ success: true, message: 'Notification manually assigned', assigned_user_id: user_id });
@@ -357,8 +357,8 @@ const reassignUser = async (req, res, next) => {
 
     // user_id can be null to unassign
     await pool.query(
-        'UPDATE notifications SET assigned_user_id = ? WHERE id = ?',
-        [user_id || null, notification_id]
+        'UPDATE notifications SET assigned_user_id = ? WHERE id = ? AND company = ?',
+        [user_id || null, notification_id, company]
     );
 
         res.json({ success: true, message: 'Repartidor actualizado' });
@@ -383,7 +383,7 @@ const reassignAll = async (req, res, next) => {
         for (const n of notifications) {
             const newUserId = n.street_id ? (demMap.get(n.street_id) || null) : null;
             if (newUserId !== n.assigned_user_id) {
-                await pool.query('UPDATE notifications SET assigned_user_id = ? WHERE id = ?', [newUserId, n.id]);
+                await pool.query('UPDATE notifications SET assigned_user_id = ? WHERE id = ? AND company = ?', [newUserId, n.id, n.company]);
                 updated++;
             }
         }
@@ -405,8 +405,8 @@ const getNotificationDetails = async (req, res, next) => {
             FROM notifications n
             LEFT JOIN streets s ON n.street_id = s.id
             LEFT JOIN users u ON n.assigned_user_id = u.id
-            WHERE n.id = ?
-        `, [id]);
+            WHERE n.id = ? AND n.company = ?
+        `, [id, company]);
 
         if (notifRows.length === 0) {
             return res.status(404).json({ success: false, error: 'Notificación no encontrada' });
@@ -417,9 +417,9 @@ const getNotificationDetails = async (req, res, next) => {
             SELECT da.*, u.name as delivered_by_name
             FROM delivery_attempts da
             LEFT JOIN users u ON da.delivered_by = u.id
-            WHERE da.notification_id = ?
+            WHERE da.notification_id = ? AND da.company = ?
             ORDER BY da.attempt_number ASC
-        `, [id]);
+        `, [id, company]);
 
         res.json({
             success: true,
@@ -444,8 +444,8 @@ const generatePdf = async (req, res, next) => {
             FROM notifications n
             LEFT JOIN streets s ON n.street_id = s.id
             LEFT JOIN users u ON n.assigned_user_id = u.id
-            WHERE n.id = ?
-        `, [id]);
+            WHERE n.id = ? AND n.company = ?
+        `, [id, company]);
 
         if (notifRows.length === 0) {
             return res.status(404).json({ success: false, error: 'Notificación no encontrada' });
@@ -533,12 +533,12 @@ const generatePdf = async (req, res, next) => {
 
 const generateBulkPdf = async (req, res, next) => {
     try {
-        const { ids: idsString } = req.query;
-        if (!idsString) {
-            return res.status(400).json({ success: false, error: 'No se proporcionaron IDs' });
+        const { pairs: pairsString } = req.query;
+        if (!pairsString) {
+            return res.status(400).json({ success: false, error: 'No se proporcionaron datos' });
         }
 
-        const ids = idsString.split(',');
+        const pairs = pairsString.split(',').map(p => p.split('|')); // Array de [id, company]
 
         // Get all notifications data
         const [notifRows] = await pool.query(`
@@ -546,9 +546,9 @@ const generateBulkPdf = async (req, res, next) => {
             FROM notifications n
             LEFT JOIN streets s ON n.street_id = s.id
             LEFT JOIN users u ON n.assigned_user_id = u.id
-            WHERE n.id IN (?)
+            WHERE (n.id, n.company) IN (?)
             ORDER BY n.id ASC
-        `, [ids]);
+        `, [pairs]);
 
         if (notifRows.length === 0) {
             return res.status(404).json({ success: false, error: 'No se encontraron notificaciones' });
@@ -559,15 +559,16 @@ const generateBulkPdf = async (req, res, next) => {
             SELECT da.*, u.name as delivered_by_name
             FROM delivery_attempts da
             LEFT JOIN users u ON da.delivered_by = u.id
-            WHERE da.notification_id IN (?)
+            WHERE (da.notification_id, da.company) IN (?)
             ORDER BY da.notification_id ASC, da.attempt_number ASC
-        `, [ids]);
+        `, [pairs]);
 
         // Map attempts to notifications for easy access
         const attemptsByNotif = {};
         attemptRows.forEach(att => {
-            if (!attemptsByNotif[att.notification_id]) attemptsByNotif[att.notification_id] = [];
-            attemptsByNotif[att.notification_id].push(att);
+            const key = `${att.notification_id}|${att.company}`;
+            if (!attemptsByNotif[key]) attemptsByNotif[key] = [];
+            attemptsByNotif[key].push(att);
         });
 
         const doc = new PDFDocument({ margin: 40 });
@@ -611,7 +612,8 @@ const generateBulkPdf = async (req, res, next) => {
 
         // --- INDIVIDUAL RECEIPT PAGES ---
         notifRows.forEach(notification => {
-            const attempts = attemptsByNotif[notification.id] || [];
+            const key = `${notification.id}|${notification.company}`;
+            const attempts = attemptsByNotif[key] || [];
             
             // Replicate the individual acuse logic for each notification
             doc.addPage();
@@ -707,8 +709,8 @@ const getReportByDate = async (req, res, next) => {
                 da1.notes as first_notes,
                 da2.notes as second_notes
             FROM notifications n
-            LEFT JOIN delivery_attempts da1 ON n.id = da1.notification_id AND da1.attempt_number = 1
-            LEFT JOIN delivery_attempts da2 ON n.id = da2.notification_id AND da2.attempt_number = 2
+            LEFT JOIN delivery_attempts da1 ON n.id = da1.notification_id AND n.company = da1.company AND da1.attempt_number = 1
+            LEFT JOIN delivery_attempts da2 ON n.id = da2.notification_id AND n.company = da2.company AND da2.attempt_number = 2
             LEFT JOIN users u ON n.assigned_user_id = u.id
             WHERE DATE(n.created_at) = ?
             ORDER BY n.id ASC
