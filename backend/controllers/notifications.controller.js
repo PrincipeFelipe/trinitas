@@ -254,7 +254,7 @@ const addNewStreets = async (req, res, next) => {
 
         let added = 0;
         for (const name of streetNames) {
-            const [result] = await pool.query('INSERT IGNORE INTO Streets (name) VALUES (?)', [name]);
+            const [result] = await pool.query('INSERT IGNORE INTO streets (name) VALUES (?)', [name]);
             if (result.affectedRows > 0) added++;
         }
 
