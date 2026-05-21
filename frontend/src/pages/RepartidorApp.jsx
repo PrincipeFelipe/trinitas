@@ -51,6 +51,72 @@ export default function RepartidorApp() {
 }
 
 function RouteList({ route, onSelect, user, onLogout }) {
+    const [selectedStreet, setSelectedStreet] = useState('ALL');
+    const [streetSearchText, setStreetSearchText] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    
+    const dropdownRef = useRef(null);
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Unique street names
+    const uniqueStreets = Array.from(
+        new Set(route.map(item => item.street_name).filter(Boolean))
+    ).sort();
+
+    // Filtered unique streets for search dropdown
+    const filteredStreetsForSelect = uniqueStreets.filter(st =>
+        st.toLowerCase().includes(streetSearchText.toLowerCase())
+    );
+
+    // Filter actual notifications list
+    const filteredRoute = route.filter(item => {
+        // 1. Street filter
+        if (selectedStreet !== 'ALL') {
+            if (item.street_name !== selectedStreet) return false;
+        }
+
+        // 2. Date range filter
+        if (startDate) {
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+            
+            const itemDate = new Date(item.created_at);
+            if (itemDate < start) return false;
+        }
+
+        if (endDate) {
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            
+            const itemDate = new Date(item.created_at);
+            if (itemDate > end) return false;
+        }
+
+        return true;
+    });
+
+    const hasActiveFilters = selectedStreet !== 'ALL' || startDate !== '' || endDate !== '';
+    
+    const handleClearFilters = () => {
+        setSelectedStreet('ALL');
+        setStreetSearchText('');
+        setStartDate('');
+        setEndDate('');
+        setIsDropdownOpen(false);
+    };
+
     return (
         <div className="mobile-view">
             <header className="mobile-header">
@@ -62,8 +128,103 @@ function RouteList({ route, onSelect, user, onLogout }) {
                     }}>🚪 Salir</button>
                 </div>
                 {user && <p style={{ margin: '4px 0 2px', opacity: 0.85, fontSize: '0.9rem' }}>👤 {user.name}</p>}
-                <p>Mi Ruta de Hoy: <strong>{route.length} pendientes</strong></p>
+                <p>Mi Ruta de Hoy: <strong>{filteredRoute.length} de {route.length} pendientes</strong></p>
             </header>
+
+            <div className="mobile-filters-bar">
+                <div className="filter-row">
+                    <span className="filter-label">📍 Filtrar por Calle</span>
+                    <div className="search-select-container" ref={dropdownRef}>
+                        <button 
+                            type="button" 
+                            className="search-select-button" 
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        >
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '280px' }}>
+                                {selectedStreet === 'ALL' ? 'Todas las calles' : selectedStreet}
+                            </span>
+                            <span>{isDropdownOpen ? '▲' : '▼'}</span>
+                        </button>
+                        {isDropdownOpen && (
+                            <div className="search-select-dropdown">
+                                <input 
+                                    type="text" 
+                                    className="search-select-search-input" 
+                                    placeholder="Buscar calle..." 
+                                    value={streetSearchText}
+                                    onChange={e => setStreetSearchText(e.target.value)}
+                                    autoFocus
+                                />
+                                <ul className="search-select-options-list">
+                                    <li 
+                                        className={`search-select-option ${selectedStreet === 'ALL' ? 'selected' : ''}`}
+                                        onClick={() => {
+                                            setSelectedStreet('ALL');
+                                            setIsDropdownOpen(false);
+                                            setStreetSearchText('');
+                                        }}
+                                    >
+                                        Todas las calles
+                                    </li>
+                                    {filteredStreetsForSelect.length === 0 ? (
+                                        <li className="search-select-option" style={{ color: '#999', cursor: 'default' }}>
+                                            No se encontraron calles
+                                        </li>
+                                    ) : (
+                                        filteredStreetsForSelect.map(st => (
+                                            <li 
+                                                key={st}
+                                                className={`search-select-option ${selectedStreet === st ? 'selected' : ''}`}
+                                                onClick={() => {
+                                                    setSelectedStreet(st);
+                                                    setIsDropdownOpen(false);
+                                                    setStreetSearchText('');
+                                                }}
+                                            >
+                                                {st}
+                                            </li>
+                                        ))
+                                    )}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="filter-row" style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                    <div className="date-filter-group">
+                        <div className="date-input-wrapper">
+                            <span className="filter-label">📅 Desde</span>
+                            <input 
+                                type="date" 
+                                className="filter-input" 
+                                value={startDate} 
+                                onChange={e => setStartDate(e.target.value)} 
+                            />
+                        </div>
+                        <div className="date-input-wrapper">
+                            <span className="filter-label">📅 Hasta</span>
+                            <input 
+                                type="date" 
+                                className="filter-input" 
+                                value={endDate} 
+                                onChange={e => setEndDate(e.target.value)} 
+                            />
+                        </div>
+                    </div>
+                    {hasActiveFilters && (
+                        <button 
+                            type="button" 
+                            className="btn-clear-filters"
+                            onClick={handleClearFilters}
+                            style={{ height: '34px' }}
+                        >
+                            Limpiar
+                        </button>
+                    )}
+                </div>
+            </div>
+
             <style>{`
                 .mobile-card.border-safe { border-left: 5px solid #48bb78; }
                 .mobile-card.border-warning { border-left: 5px solid #ed8936; }
@@ -73,12 +234,147 @@ function RouteList({ route, onSelect, user, onLogout }) {
                 .urgency-safe { color: #2f855a; }
                 .urgency-warning { color: #c05621; }
                 .urgency-expired { color: #c53030; }
+
+                .mobile-filters-bar {
+                    background: #ffffff;
+                    border-bottom: 1px solid #e2e8f0;
+                    padding: 12px 16px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                }
+                .filter-row {
+                    width: 100%;
+                }
+                .filter-label {
+                    display: block;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    color: #475569;
+                    margin-bottom: 4px;
+                }
+                .filter-input {
+                    width: 100%;
+                    padding: 8px 10px;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 8px;
+                    font-size: 0.8rem;
+                    color: var(--text-dark);
+                    background: #f8fafc;
+                    box-sizing: border-box;
+                }
+                .filter-input:focus {
+                    outline: none;
+                    border-color: var(--action);
+                    background: #ffffff;
+                }
+
+                .search-select-container {
+                    position: relative;
+                    width: 100%;
+                }
+                .search-select-button {
+                    width: 100%;
+                    padding: 8px 12px;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 8px;
+                    font-size: 0.8rem;
+                    text-align: left;
+                    color: var(--text-dark);
+                    background: #f8fafc;
+                    cursor: pointer;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    box-sizing: border-box;
+                }
+                .search-select-dropdown {
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    right: 0;
+                    background: #ffffff;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 8px;
+                    margin-top: 4px;
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                    z-index: 50;
+                    max-height: 220px;
+                    overflow-y: auto;
+                    padding: 8px;
+                    box-sizing: border-box;
+                }
+                .search-select-search-input {
+                    width: 100%;
+                    padding: 8px;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 6px;
+                    font-size: 0.8rem;
+                    margin-bottom: 8px;
+                    box-sizing: border-box;
+                }
+                .search-select-search-input:focus {
+                    outline: none;
+                    border-color: var(--action);
+                }
+                .search-select-options-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                    max-height: 140px;
+                    overflow-y: auto;
+                }
+                .search-select-option {
+                    padding: 6px 10px;
+                    font-size: 0.8rem;
+                    cursor: pointer;
+                    border-radius: 6px;
+                    color: var(--text-dark);
+                    transition: background 0.15s;
+                }
+                .search-select-option:hover {
+                    background: #f1f5f9;
+                }
+                .search-select-option.selected {
+                    background: #e0f2fe;
+                    color: #0369a1;
+                    font-weight: 600;
+                }
+                .date-filter-group {
+                    display: flex;
+                    gap: 8px;
+                    flex: 1;
+                }
+                .date-input-wrapper {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .btn-clear-filters {
+                    background: #cbd5e1;
+                    color: #475569;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 8px 12px;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                }
+                .btn-clear-filters:hover {
+                    background: #94a3b8;
+                    color: #1e293b;
+                }
             `}</style>
             <div className="mobile-body">
                 {route.length === 0 ? (
                     <p className="empty-state">No tienes notificaciones pendientes para hoy.</p>
+                ) : filteredRoute.length === 0 ? (
+                    <p className="empty-state" style={{ color: '#94a3b8', fontStyle: 'italic', textAlign: 'center', padding: '40px 10px' }}>
+                        No hay notificaciones que coincidan con los filtros aplicados.
+                    </p>
                 ) : (
-                    route.map(item => {
+                    filteredRoute.map(item => {
                         const daysElapsed = Math.floor((new Date() - new Date(item.created_at)) / (1000 * 60 * 60 * 24));
                         const daysRemaining = 8 - daysElapsed;
                         
