@@ -590,12 +590,14 @@ const generateBulkPdf = async (req, res, next) => {
         // Table Header
         const startX = 40;
         let currentY = doc.y;
-        doc.fontSize(9).font('Helvetica-Bold');
-        doc.text('ID', startX, currentY, { width: 50 });
-        doc.text('DESTINATARIO', startX + 60, currentY, { width: 150 });
-        doc.text('EMPRESA', startX + 220, currentY, { width: 100 });
-        doc.text('ESTADO', startX + 330, currentY, { width: 80 });
-        doc.text('REPARTIDOR', startX + 420, currentY, { width: 100 });
+        doc.fontSize(8).font('Helvetica-Bold');
+        doc.text('ID', startX, currentY, { width: 45 });
+        doc.text('DESTINATARIO', startX + 50, currentY, { width: 100 });
+        doc.text('EMPRESA', startX + 155, currentY, { width: 75 });
+        doc.text('ESTADO', startX + 235, currentY, { width: 70 });
+        doc.text('REPARTIDOR', startX + 310, currentY, { width: 70 });
+        doc.text('FECHA CARGA', startX + 385, currentY, { width: 65 });
+        doc.text('INTENTOS', startX + 455, currentY, { width: 60 });
         
         doc.moveTo(startX, currentY + 12).lineTo(550, currentY + 12).stroke();
         currentY += 20;
@@ -607,11 +609,32 @@ const generateBulkPdf = async (req, res, next) => {
                 doc.addPage();
                 currentY = 40;
             }
-            doc.text(n.id, startX, currentY, { width: 50 });
-            doc.text(n.recipient_name, startX + 60, currentY, { width: 150, height: 12, ellipsis: true });
-            doc.text(n.company.replace('_', ' '), startX + 220, currentY, { width: 100 });
-            doc.text(n.status, startX + 330, currentY, { width: 80 });
-            doc.text(n.assigned_user_name || '-', startX + 420, currentY, { width: 100 });
+
+            const key = `${n.id}|${n.company}`;
+            const attempts = attemptsByNotif[key] || [];
+            const attemptDatesStr = attempts.map(att => {
+                const d = new Date(att.timestamp);
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                return `${day}/${month}`;
+            }).join(', ') || '-';
+
+            const loadDateStr = n.created_at ? (() => {
+                const d = new Date(n.created_at);
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                return `${day}/${month}/${d.getFullYear()}`;
+            })() : '-';
+
+            const companyShort = n.company === 'ENERGIA_CEUTA' ? 'Energía Ceuta' : 'Alumbrado';
+
+            doc.text(n.id, startX, currentY, { width: 45 });
+            doc.text(n.recipient_name, startX + 50, currentY, { width: 100, height: 10, ellipsis: true });
+            doc.text(companyShort, startX + 155, currentY, { width: 75, height: 10, ellipsis: true });
+            doc.text(n.status, startX + 235, currentY, { width: 70 });
+            doc.text(n.assigned_user_name || '-', startX + 310, currentY, { width: 70, height: 10, ellipsis: true });
+            doc.text(loadDateStr, startX + 385, currentY, { width: 65 });
+            doc.text(attemptDatesStr, startX + 455, currentY, { width: 60 });
             currentY += 15;
         });
 
