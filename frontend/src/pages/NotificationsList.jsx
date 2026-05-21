@@ -20,6 +20,8 @@ export default function NotificationsList() {
     const [filterUser, setFilterUser] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
     const [filterCompany, setFilterCompany] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [selectedDetail, setSelectedDetail] = useState(null);
     const [detailLoading, setDetailLoading] = useState(false);
 
@@ -149,7 +151,22 @@ export default function NotificationsList() {
             matchesStatus = !isPending(n.status);
         }
         const matchesCompany = !filterCompany || n.company === filterCompany;
-        return matchesSearch && matchesUser && matchesStatus && matchesCompany;
+
+        let matchesDate = true;
+        if (startDate) {
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+            const itemDate = new Date(n.created_at);
+            if (itemDate < start) matchesDate = false;
+        }
+        if (endDate) {
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            const itemDate = new Date(n.created_at);
+            if (itemDate > end) matchesDate = false;
+        }
+
+        return matchesSearch && matchesUser && matchesStatus && matchesCompany && matchesDate;
     });
 
     const statusLabels = {
@@ -437,6 +454,55 @@ export default function NotificationsList() {
                                 ))}
                             </select>
                         </div>
+                        <div className="filter-group">
+                            <label>Fecha Desde</label>
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={e => setStartDate(e.target.value)}
+                            />
+                        </div>
+                        <div className="filter-group">
+                            <label>Fecha Hasta</label>
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={e => setEndDate(e.target.value)}
+                            />
+                        </div>
+                        {(search || filterUser || filterStatus || filterCompany || startDate || endDate) && (
+                            <button 
+                                onClick={() => {
+                                    setSearch('');
+                                    setFilterUser('');
+                                    setFilterStatus('');
+                                    setFilterCompany('');
+                                    setStartDate('');
+                                    setEndDate('');
+                                }}
+                                style={{
+                                    background: '#fff5f5',
+                                    color: '#e53e3e',
+                                    border: '1px solid #fed7d7',
+                                    padding: '8px 16px',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '600',
+                                    height: '38px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px',
+                                    transition: 'all 0.2s',
+                                    minWidth: '100px'
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = '#fed7d7'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = '#fff5f5'; }}
+                            >
+                                🧹 Limpiar
+                            </button>
+                        )}
                     </div>
 
                     <div className="notif-count" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
