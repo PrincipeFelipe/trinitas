@@ -191,8 +191,12 @@ function CourierChart({ data }) {
 // Main Dashboard
 // ==========================================
 export default function AdminDashboard() {
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [company, setCompany] = useState('');
     const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [calView, setCalView] = useState('month');
     
     // Day details state
@@ -200,19 +204,34 @@ export default function AdminDashboard() {
     const [loadingActivity, setLoadingActivity] = useState(false);
     const [selectedDate, setSelectedDate] = useState('');
 
+    const fetchStats = useCallback(async (isInitial = false) => {
+        if (isInitial) setInitialLoading(true);
+        else setRefreshing(true);
+        try {
+            const params = {};
+            if (company) params.company = company;
+            if (startDate) params.startDate = startDate;
+            if (endDate) params.endDate = endDate;
+
+            const response = await apiClient.get('/stats', { params });
+            if (response.data.success) setStats(response.data.data);
+        } catch (error) {
+            console.error("Failed fetching stats", error);
+        } finally {
+            setInitialLoading(false);
+            setRefreshing(false);
+        }
+    }, [startDate, endDate, company]);
+
     useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const response = await apiClient.get('/stats');
-                if (response.data.success) setStats(response.data.data);
-            } catch (error) {
-                console.error("Failed fetching stats", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchStats();
-    }, []);
+        fetchStats(stats === null);
+    }, [fetchStats]);
+
+    const handleClearFilters = () => {
+        setStartDate('');
+        setEndDate('');
+        setCompany('');
+    };
 
     const fetchDayActivity = async (dateStr) => {
         setLoadingActivity(true);
@@ -230,7 +249,7 @@ export default function AdminDashboard() {
         }
     };
 
-    if (loading || !stats) return (
+    if (initialLoading || !stats) return (
         <AdminLayout title="Dashboard Principal">
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
                 <p style={{ color: '#94a3b8' }}>Cargando estadísticas...</p>
@@ -243,6 +262,98 @@ export default function AdminDashboard() {
     return (
         <AdminLayout title="Dashboard Principal">
             <style>{`
+                /* Filters Panel Styling */
+                .filters-panel {
+                    background: #fff;
+                    border-radius: 16px;
+                    padding: 20px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                    margin-bottom: 24px;
+                    display: flex;
+                    align-items: flex-end;
+                    justify-content: space-between;
+                    flex-wrap: wrap;
+                    gap: 16px;
+                }
+                .filters-group {
+                    display: flex;
+                    align-items: flex-end;
+                    flex-wrap: wrap;
+                    gap: 16px;
+                    flex: 1;
+                }
+                .filter-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                    min-width: 180px;
+                    flex: 1;
+                }
+                .filter-item label {
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    color: #64748b;
+                }
+                .filter-input {
+                    padding: 10px 14px;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 8px;
+                    font-size: 0.9rem;
+                    color: #1a365d;
+                    background-color: #f8fafc;
+                    transition: border-color 0.2s, box-shadow 0.2s;
+                    font-family: inherit;
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+                .filter-input:focus {
+                    outline: none;
+                    border-color: #3182ce;
+                    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
+                    background-color: #fff;
+                }
+                .btn-clear-filters {
+                    padding: 10px 20px;
+                    background-color: #f1f5f9;
+                    color: #475569;
+                    border: none;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    cursor: pointer;
+                    transition: background-color 0.15s, color 0.15s;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    height: 40px;
+                }
+                .btn-clear-filters:hover {
+                    background-color: #e2e8f0;
+                    color: #1e293b;
+                }
+                .refresh-indicator {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 0.85rem;
+                    color: #3182ce;
+                    font-weight: 600;
+                }
+                .spinner-mini {
+                    border: 2px solid #e2e8f0;
+                    border-top: 2px solid #3182ce;
+                    border-radius: 50%;
+                    width: 14px;
+                    height: 14px;
+                    animation: spin 1s linear infinite;
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+
                 .dash-grid-top {
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -416,6 +527,59 @@ export default function AdminDashboard() {
                 .courier-stats { font-size: 0.75rem; color: #64748b; text-align: right; }
             `}</style>
 
+            {/* Filters Panel */}
+            <div className="filters-panel">
+                <div className="filters-group">
+                    <div className="filter-item">
+                        <label htmlFor="filter-company">Empresa</label>
+                        <select
+                            id="filter-company"
+                            className="filter-input"
+                            value={company}
+                            onChange={e => setCompany(e.target.value)}
+                        >
+                            <option value="">Todas las empresas</option>
+                            <option value="ENERGIA_CEUTA">Energía Ceuta</option>
+                            <option value="ALUMBRADO_CEUTA">Alumbrado Ceuta</option>
+                        </select>
+                    </div>
+                    
+                    <div className="filter-item">
+                        <label htmlFor="filter-start-date">Fecha Desde</label>
+                        <input
+                            id="filter-start-date"
+                            type="date"
+                            className="filter-input"
+                            value={startDate}
+                            onChange={e => setStartDate(e.target.value)}
+                        />
+                    </div>
+                    
+                    <div className="filter-item">
+                        <label htmlFor="filter-end-date">Fecha Hasta</label>
+                        <input
+                            id="filter-end-date"
+                            type="date"
+                            className="filter-input"
+                            value={endDate}
+                            onChange={e => setEndDate(e.target.value)}
+                        />
+                    </div>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {refreshing && (
+                        <div className="refresh-indicator" title="Actualizando datos...">
+                            <div className="spinner-mini"></div>
+                            <span style={{ fontSize: '0.8rem', color: '#3182ce' }}>Actualizando...</span>
+                        </div>
+                    )}
+                    <button className="btn-clear-filters" onClick={handleClearFilters}>
+                        🧹 Limpiar Filtros
+                    </button>
+                </div>
+            </div>
+
             {/* KPI Cards Row */}
             <div className="dash-grid-top">
                 <div className="kpi-card kpi-blue">
@@ -515,8 +679,10 @@ export default function AdminDashboard() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {dayActivity.map((row, i) => (
-                                            <tr key={`${row.notification_id}-${row.company}-${row.timestamp}`} className="act-row">
+                                        {dayActivity
+                                            .filter(row => !company || row.company === company)
+                                            .map((row, i) => (
+                                                <tr key={`${row.notification_id}-${row.company}-${row.timestamp}`} className="act-row">
                                                 <td style={{ fontWeight: 600 }}>{new Date(row.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                                                 <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#3182ce' }}>#{row.notification_id}</td>
                                                 <td style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1a6fb5' }}>{row.company === 'ENERGIA_CEUTA' ? 'Energía' : 'Alumbrado'}</td>
