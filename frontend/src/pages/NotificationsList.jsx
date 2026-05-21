@@ -545,10 +545,16 @@ export default function NotificationsList() {
 
                             return (
                                 <div key={`${n.id}-${n.company}`} className={cardClass}>
-                                    <div className="col">
-                                        <div className="fl">ID</div>
-                                        <div className="fv id-text">{n.id}</div>
-                                    </div>
+                                     <div className="col">
+                                         <div className="fl">ID</div>
+                                         <div className="fv id-text">
+                                             {n.id}
+                                             <div style={{ fontSize: '0.72rem', color: '#718096', marginTop: '3px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                 <span>📅</span>
+                                                 <span>{n.created_at ? new Date(n.created_at).toLocaleDateString('es-ES') : '-'}</span>
+                                             </div>
+                                         </div>
+                                     </div>
                                     <div className="col">
                                         <div className="fl">Empresa</div>
                                         <div className="fv" style={{ fontSize: '0.8rem', color: '#1a6fb5' }}>{n.company ? COMPANY_SHORT_NAMES[n.company] : '-'}</div>
@@ -662,6 +668,10 @@ export default function NotificationsList() {
                                             <div className="detail-item">
                                                 <label>Empresa Emisora</label>
                                                 <span>{selectedDetail.company ? COMPANIES[selectedDetail.company]?.name : 'No especificada'}</span>
+                                            </div>
+                                            <div className="detail-item">
+                                                <label>Fecha de Carga</label>
+                                                <span>{selectedDetail.created_at ? new Date(selectedDetail.created_at).toLocaleString('es-ES') : '-'}</span>
                                             </div>
                                             <div className="detail-item">
                                                 <label>Dirección</label>
