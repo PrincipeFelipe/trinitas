@@ -164,10 +164,12 @@ function ActivityCalendar({ calendarData, view, onViewChange, onDayClick }) {
 // ==========================================
 function CourierChart({ data }) {
     if (!data || data.length === 0) return <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Sin datos de repartidores.</p>;
-    const max = Math.max(...data.map(d => Number(d.total_assigned) || 0), 1);
+    const activeCouriers = data.filter(c => (Number(c.total_assigned) || 0) > 0);
+    if (activeCouriers.length === 0) return <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Sin datos de repartidores para los filtros seleccionados.</p>;
+    const max = Math.max(...activeCouriers.map(d => Number(d.total_assigned) || 0), 1);
     return (
         <div className="courier-chart">
-            {data.map((c, i) => {
+            {activeCouriers.map((c, i) => {
                 const total = Number(c.total_assigned) || 0;
                 const delivered = Number(c.delivered) || 0;
                 const rate = total > 0 ? Math.round((delivered / total) * 100) : 0;
@@ -605,13 +607,13 @@ export default function AdminDashboard() {
                 </div>
                 <div className="kpi-card kpi-purple">
                     <div className="kpi-label">Repartidores</div>
-                    <div className="kpi-value">{users.couriers}</div>
-                    <div className="kpi-sub">de {users.total} usuarios</div>
+                    <div className="kpi-value">{users.active}</div>
+                    <div className="kpi-sub">activos de {users.couriers} repartidores</div>
                 </div>
                 <div className="kpi-card kpi-orange">
                     <div className="kpi-label">Calles</div>
-                    <div className="kpi-value">{streets.total}</div>
-                    <div className="kpi-sub">{streets.assigned} en demarcaciones</div>
+                    <div className="kpi-value">{streets.active}</div>
+                    <div className="kpi-sub">con envíos de {streets.total} totales</div>
                 </div>
             </div>
 

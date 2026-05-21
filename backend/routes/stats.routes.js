@@ -43,6 +43,13 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
             FROM users
         `);
 
+        // Active couriers under filters
+        const [[activeCourierStats]] = await pool.query(`
+            SELECT COUNT(DISTINCT assigned_user_id) as active_couriers
+            FROM notifications
+            ${notifWhere} AND assigned_user_id IS NOT NULL
+        `, notifParams);
+
         // --- Street Stats (general count) ---
         const [[streetStats]] = await pool.query(`
             SELECT 
@@ -50,6 +57,13 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
                 (SELECT COUNT(*) FROM demarcations) as assigned_streets
             FROM streets
         `);
+
+        // Active streets under filters
+        const [[activeStreetStats]] = await pool.query(`
+            SELECT COUNT(DISTINCT street_id) as active_streets
+            FROM notifications
+            ${notifWhere} AND street_id IS NOT NULL
+        `, notifParams);
 
         // --- Calendar: deliveries and attempts per day ---
         let calWhere = 'WHERE 1=1';
@@ -173,11 +187,13 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
                 },
                 users: {
                     total: userStats.total_users || 0,
-                    couriers: userStats.total_couriers || 0
+                    couriers: userStats.total_couriers || 0,
+                    active: activeCourierStats.active_couriers || 0
                 },
                 streets: {
                     total: streetStats.total_streets || 0,
-                    assigned: streetStats.assigned_streets || 0
+                    assigned: streetStats.assigned_streets || 0,
+                    active: activeStreetStats.active_streets || 0
                 },
                 calendar: calendarDeliveries,
                 unassignedNotifs,
