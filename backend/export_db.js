@@ -13,11 +13,19 @@ async function exportDB() {
 
     const [tables] = await connection.query('SHOW TABLES');
     const dbName = process.env.DB_NAME || 'trinitas_db';
+    
+    // Ordenar tablas por dependencias para evitar errores errno: 150 durante la creación en MariaDB/MySQL
+    const tableNames = tables.map(t => Object.values(t)[0]);
+    const dependencyOrder = ['users', 'streets', 'demarcations', 'notifications', 'delivery_attempts'];
+    const orderedTables = [
+        ...dependencyOrder.filter(name => tableNames.includes(name)),
+        ...tableNames.filter(name => !dependencyOrder.includes(name))
+    ];
+
     let sqlDump = `-- Backup Trinitas\n-- Fecha: ${new Date().toISOString()}\n\n`;
     sqlDump += `SET FOREIGN_KEY_CHECKS = 0;\n\n`;
 
-    for (let tableObj of tables) {
-        const tableName = tableObj[`Tables_in_${dbName}`];
+    for (let tableName of orderedTables) {
         console.log(`Exportando tabla: ${tableName}...`);
 
         sqlDump += `DROP TABLE IF EXISTS \`${tableName}\`;\n`;
