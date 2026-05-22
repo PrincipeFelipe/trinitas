@@ -43,8 +43,47 @@ async function exportData() {
     console.log('¡Ahora puedes hacer git commit y push de este archivo, y luego importarlo en producción!');
 }
 
+async function ensureSchema() {
+    console.log('Verificando si es necesario inicializar el esquema de base de datos...');
+    try {
+        // Verificar si la tabla de Users ya existe
+        await pool.query("SELECT 1 FROM Users LIMIT 1");
+        console.log('✅ Tablas existentes encontradas. No se requiere inicializar el esquema.');
+    } catch (err) {
+        if (err.code === 'ER_NO_SUCH_TABLE') {
+            console.log('⚠️ Tabla "Users" no encontrada. Inicializando base de datos con el esquema de trinitas...');
+            const schemaPath = path.join(__dirname, 'db', 'schema.sql');
+            if (!fs.existsSync(schemaPath)) {
+                console.error(`❌ Error: No se encontró el archivo de esquema en: ${schemaPath}`);
+                throw new Error('Archivo schema.sql no encontrado');
+            }
+            const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+            const queries = schemaSql
+                .split(';')
+                .map(q => q.replace(/--.*$/gm, '').trim())
+                .filter(q => q.length > 0);
+            
+            for (let i = 0; i < queries.length; i++) {
+                const query = queries[i];
+                try {
+                    await pool.query(query);
+                } catch (qErr) {
+                    console.error(`❌ Error ejecutando la sentencia SQL: ${query}`);
+                    throw qErr;
+                }
+            }
+            console.log('✅ Esquema de base de datos inicializado con éxito.');
+        } else {
+            throw err;
+        }
+    }
+}
+
 async function importData() {
     console.log('=== INICIANDO IMPORTACIÓN DE USUARIOS Y CALLEJERO (PROD) ===');
+    
+    // Inicializar tablas si no existen
+    await ensureSchema();
     
     if (!fs.existsSync(DATA_FILE)) {
         console.error(`❌ Error: No se encontró el archivo de datos en: ${DATA_FILE}`);
