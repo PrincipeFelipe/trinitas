@@ -13,7 +13,12 @@ function ActivityCalendar({ calendarData, view, onViewChange, onDayClick }) {
         dataMap[d.day] = { attempts: Number(d.attempts), delivered: Number(d.delivered) };
     });
 
-    const fmt = (d) => d.toISOString().split('T')[0];
+    const fmt = (d) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
 
     const navigate = (dir) => {
         const d = new Date(currentDate);
