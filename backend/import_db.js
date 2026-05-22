@@ -27,43 +27,44 @@ async function importDB() {
         .filter(q => q.length > 0 && !q.startsWith('--'));
 
     console.log(`Cargadas ${queries.length} sentencias SQL desde backup.sql.`);
-    console.log('Ejecutando restauración...');
+    // Obtener una conexión dedicada del pool para mantener el estado de sesión (FOREIGN_KEY_CHECKS = 0)
+    const connection = await pool.getConnection();
+    try {
+        console.log('Desactivando temporalmente comprobación de llaves foráneas...');
+        await connection.query('SET FOREIGN_KEY_CHECKS = 0');
 
-    // Desactivar temporalmente comprobación de llaves foráneas para evitar conflictos en el orden de borrado/creación
-    await pool.query('SET FOREIGN_KEY_CHECKS = 0');
-
-    let executed = 0;
-    for (let query of queries) {
-        let sql = query;
-        if (!sql.endsWith(';')) {
-            sql += ';';
-        }
-
-        try {
-            await pool.query(sql);
-            executed++;
-            if (executed % 50 === 0) {
-                console.log(`   * Ejecutadas ${executed} de ${queries.length} sentencias...`);
+        let executed = 0;
+        for (let query of queries) {
+            let sql = query;
+            if (!sql.endsWith(';')) {
+                sql += ';';
             }
-        } catch (err) {
-            console.error(`❌ Error ejecutando la sentencia SQL #${executed + 1}:`);
-            console.error(sql.slice(0, 200) + (sql.length > 200 ? '...' : ''));
-            console.error('Error:', err.message);
-            
-            // Reactivar llaves foráneas
-            await pool.query('SET FOREIGN_KEY_CHECKS = 1');
-            process.exit(1);
+
+            try {
+                await connection.query(sql);
+                executed++;
+                if (executed % 50 === 0) {
+                    console.log(`   * Ejecutadas ${executed} de ${queries.length} sentencias...`);
+                }
+            } catch (err) {
+                console.error(`❌ Error ejecutando la sentencia SQL #${executed + 1}:`);
+                console.error(sql.slice(0, 200) + (sql.length > 200 ? '...' : ''));
+                throw err;
+            }
         }
+
+        // Reactivar comprobación de llaves foráneas
+        console.log('Reactivando comprobación de llaves foráneas...');
+        await connection.query('SET FOREIGN_KEY_CHECKS = 1');
+
+        console.log(`\n✅ RESTAURACIÓN COMPLETADA CON ÉXITO: ${executed} sentencias ejecutadas.`);
+        console.log(`La base de datos '${dbName}' es ahora una copia idéntica a tu base de datos de desarrollo.`);
+    } finally {
+        connection.release();
     }
-
-    // Reactivar comprobación de llaves foráneas
-    await pool.query('SET FOREIGN_KEY_CHECKS = 1');
-
-    console.log(`\n✅ RESTAURACIÓN COMPLETADA CON ÉXITO: ${executed} sentencias ejecutadas.`);
-    console.log(`La base de datos '${dbName}' es ahora una copia idéntica a tu base de datos de desarrollo.`);
 }
 
 importDB().catch(err => {
-    console.error('Error general durante la restauración:', err);
+    console.error('\n❌ Error durante la restauración:', err.message);
     process.exit(1);
 });
