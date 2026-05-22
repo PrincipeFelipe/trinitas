@@ -134,14 +134,14 @@ async function importData() {
     
     // Obtener mapas actualizados de usuarios y calles en producción para mapear IDs rápidamente
     const [currentUsers] = await pool.query("SELECT id, username FROM users");
-    const userMap = new Map(currentUsers.map(u => [u.username, u.id]));
+    const userMap = new Map(currentUsers.map(u => [u.username.trim().toLowerCase(), u.id]));
 
     const [currentStreets] = await pool.query("SELECT id, name FROM streets");
-    const streetMap = new Map(currentStreets.map(s => [s.name, s.id]));
+    const streetMap = new Map(currentStreets.map(s => [s.name.trim().toUpperCase(), s.id]));
 
     for (const d of payload.demarcations) {
-        const userId = userMap.get(d.username);
-        const streetId = streetMap.get(d.street_name);
+        const userId = userMap.get(d.username.trim().toLowerCase());
+        const streetId = streetMap.get(d.street_name.trim().toUpperCase());
 
         if (!userId) {
             console.warn(`   ⚠️ Advertencia: No se encontró al usuario '${d.username}' en producción. Omitiendo demarcación.`);
