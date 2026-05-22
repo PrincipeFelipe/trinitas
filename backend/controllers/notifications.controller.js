@@ -736,13 +736,13 @@ const generateBulkPdf = async (req, res, next) => {
         // Helper to draw table header in landscape
         const drawHeader = (doc, startX, y) => {
             doc.fontSize(8).font('Helvetica-Bold');
-            doc.text('ID', startX, y, { width: 50 });
-            doc.text('DESTINATARIO', startX + 55, y, { width: 140 });
-            doc.text('EMPRESA', startX + 200, y, { width: 85 });
-            doc.text('ESTADO', startX + 290, y, { width: 75 });
-            doc.text('REPARTIDOR', startX + 370, y, { width: 85 });
-            doc.text('FECHA CARGA', startX + 460, y, { width: 75 });
-            doc.text('INTENTO 1', startX + 540, y, { width: 110 });
+            doc.text('ID', startX, y, { width: 40 });
+            doc.text('DESTINATARIO', startX + 45, y, { width: 150 });
+            doc.text('EMPRESA', startX + 200, y, { width: 130 });
+            doc.text('ESTADO', startX + 335, y, { width: 60 });
+            doc.text('REPARTIDOR', startX + 400, y, { width: 75 });
+            doc.text('FECHA CARGA', startX + 480, y, { width: 60 });
+            doc.text('INTENTO 1', startX + 545, y, { width: 105 });
             doc.text('INTENTO 2', startX + 655, y, { width: 105 });
             
             doc.moveTo(startX, y + 12).lineTo(800, y + 12).stroke();
@@ -764,13 +764,6 @@ const generateBulkPdf = async (req, res, next) => {
         // Table Rows
         doc.font('Helvetica');
         notifRows.forEach(n => {
-            if (currentY > 500) {
-                doc.addPage({ layout: 'landscape' });
-                currentY = 40;
-                drawHeader(doc, startX, currentY);
-                currentY += 20;
-            }
-
             const key = n.id;
             const attempts = attemptsByNotif[key] || [];
 
@@ -797,16 +790,37 @@ const generateBulkPdf = async (req, res, next) => {
 
             const compName = COMPANIES[n.company]?.name || n.company;
 
+            // Calculate dynamic row height based on cell wrappers in size 8
+            doc.fontSize(8).font('Helvetica');
+            const idHeight = doc.heightOfString(n.id_notificacion || '', { width: 40 });
+            const nameHeight = doc.heightOfString(n.recipient_name || '', { width: 150 });
+            const compHeight = doc.heightOfString(compName || '', { width: 130 });
+            const statusHeight = doc.heightOfString(n.status || '', { width: 60 });
+            const courierHeight = doc.heightOfString(n.assigned_user_name || 'Sin Asignar', { width: 75 });
+            const loadHeight = doc.heightOfString(loadDateStr || '', { width: 60 });
+            const att1Height = doc.heightOfString(attempt1Str || '', { width: 105 });
+            const att2Height = doc.heightOfString(attempt2Str || '', { width: 105 });
+
+            const rowHeight = Math.max(idHeight, nameHeight, compHeight, statusHeight, courierHeight, loadHeight, att1Height, att2Height, 15) + 6;
+
+            // Check page boundary before drawing
+            if (currentY + rowHeight > 540) {
+                doc.addPage({ layout: 'landscape' });
+                currentY = 40;
+                drawHeader(doc, startX, currentY);
+                currentY += 20;
+            }
+
             doc.fontSize(8);
-            doc.text(n.id_notificacion, startX, currentY, { width: 50 });
-            doc.text(n.recipient_name, startX + 55, currentY, { width: 140 });
-            doc.text(compName, startX + 200, currentY, { width: 85 });
-            doc.text(n.status, startX + 290, currentY, { width: 75 });
-            doc.text(n.assigned_user_name || 'Sin Asignar', startX + 370, currentY, { width: 85 });
-            doc.text(loadDateStr, startX + 460, currentY, { width: 75 });
-            doc.text(attempt1Str, startX + 540, currentY, { width: 110 });
+            doc.text(n.id_notificacion, startX, currentY, { width: 40 });
+            doc.text(n.recipient_name, startX + 45, currentY, { width: 150 });
+            doc.text(compName, startX + 200, currentY, { width: 130 });
+            doc.text(n.status, startX + 335, currentY, { width: 60 });
+            doc.text(n.assigned_user_name || 'Sin Asignar', startX + 400, currentY, { width: 75 });
+            doc.text(loadDateStr, startX + 480, currentY, { width: 60 });
+            doc.text(attempt1Str, startX + 545, currentY, { width: 105 });
             doc.text(attempt2Str, startX + 655, currentY, { width: 105 });
-            currentY += 20;
+            currentY += rowHeight;
         });
 
         // --- INDIVIDUAL RECEIPT PAGES ---
