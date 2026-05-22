@@ -8,9 +8,9 @@ const { verifyToken } = require('../middlewares/auth');
 router.get('/history', verifyToken, async (req, res, next) => {
     try {
         const [rows] = await pool.query(`
-            SELECT id, recipient_name, full_address, status, company
+            SELECT id, id_notificacion, recipient_name, full_address, status, company
             FROM notifications 
-            WHERE status IN ('DELIVERED', 'RETURNED')
+            WHERE status IN ('ENTREGADA', 'DEVUELTA')
             ORDER BY id DESC
         `);
         res.json({ success: true, data: rows });

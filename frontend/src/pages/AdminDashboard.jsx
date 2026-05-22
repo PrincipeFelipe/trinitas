@@ -686,7 +686,7 @@ export default function AdminDashboard() {
                                             .map((row, i) => (
                                                 <tr key={`${row.notification_id}-${row.company}-${row.timestamp}`} className="act-row">
                                                 <td style={{ fontWeight: 600 }}>{new Date(row.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                                                <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#3182ce' }}>#{row.notification_id}</td>
+                                                <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#3182ce' }}>#{row.id_notificacion}</td>
                                                 <td style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1a6fb5' }}>{row.company === 'ENERGIA_CEUTA' ? 'Energía' : 'Alumbrado'}</td>
                                                 <td>
                                                     <div style={{ fontWeight: 600 }}>{row.recipient_name}</div>

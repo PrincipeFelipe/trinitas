@@ -1,5 +1,7 @@
 const pool = require('../db/connection');
 const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
 
 const COMPANIES = {
     'ENERGIA_CEUTA': {
@@ -109,6 +111,144 @@ function extractStreetName(fullAddress) {
     return `${normalizedType} ${streetName}`.replace(/\s+/g, ' ').trim();
 }
 
+function removeDoubleStreetType(streetPart) {
+    for (const type of STREET_TYPES) {
+        const doubleType = type + ' ' + type + ' ';
+        if (streetPart.startsWith(doubleType)) {
+            return streetPart.substring(type.length + 1);
+        }
+    }
+    return streetPart;
+}
+
+function parseStreetFromAddress(fullAddress, sortedStreets, streetMap) {
+    const normalizedAddress = fullAddress.toUpperCase().replace(/\s+/g, ' ').trim();
+
+    // Helper function to match
+    function tryMatch(addressStr, streetPartStr) {
+        // A. Exact Match (if streetPartStr is provided)
+        if (streetPartStr) {
+            const lookup = streetMap.get(streetPartStr);
+            if (lookup) {
+                return {
+                    street_id: lookup.id,
+                    assigned_user_id: lookup.user_id || null,
+                    extractedStreet: streetPartStr,
+                    matched: true
+                };
+            }
+        }
+
+        // B. Prefix Match
+        for (const s of sortedStreets) {
+            const normalizedStreetName = s.name.toUpperCase().replace(/\s+/g, ' ').trim();
+            if (addressStr.startsWith(normalizedStreetName)) {
+                if (addressStr.length === normalizedStreetName.length || 
+                    !/^[A-ZÁÉÍÓÚÑÜ]/.test(addressStr.charAt(normalizedStreetName.length))) {
+                    
+                    const lookup = streetMap.get(normalizedStreetName);
+                    return {
+                        street_id: lookup.id,
+                        assigned_user_id: lookup.user_id || null,
+                        extractedStreet: normalizedStreetName,
+                        matched: true
+                    };
+                }
+            }
+        }
+
+        // C. Truncated Match
+        for (const s of sortedStreets) {
+            const normalizedStreetName = s.name.toUpperCase().replace(/\s+/g, ' ').trim();
+            if (addressStr.length >= 25 && normalizedStreetName.startsWith(addressStr)) {
+                const lookup = streetMap.get(normalizedStreetName);
+                return {
+                    street_id: lookup.id,
+                    assigned_user_id: lookup.user_id || null,
+                    extractedStreet: normalizedStreetName,
+                    matched: true
+                };
+            }
+        }
+
+        // D. Truncated Match for streetPartStr (if provided)
+        if (streetPartStr && streetPartStr.length >= 25) {
+            for (const s of sortedStreets) {
+                const normalizedStreetName = s.name.toUpperCase().replace(/\s+/g, ' ').trim();
+                if (normalizedStreetName.startsWith(streetPartStr)) {
+                    const lookup = streetMap.get(normalizedStreetName);
+                    return {
+                        street_id: lookup.id,
+                        assigned_user_id: lookup.user_id || null,
+                        extractedStreet: normalizedStreetName,
+                        matched: true
+                    };
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // 1. First, try matching with the original address parts
+    let doubleSpaceStreetPart = null;
+    if (fullAddress.includes('  ')) {
+        const parts = fullAddress.split('  ');
+        doubleSpaceStreetPart = parts[0].toUpperCase().replace(/\s+/g, ' ').trim();
+    }
+
+    let match = tryMatch(normalizedAddress, doubleSpaceStreetPart);
+    if (match) return match;
+
+    // 2. If no match, try removing double street type (e.g. "GRUPO GRUPO ALFAU" -> "GRUPO ALFAU")
+    const cleanAddress = removeDoubleStreetType(normalizedAddress);
+    const cleanStreetPart = doubleSpaceStreetPart ? removeDoubleStreetType(doubleSpaceStreetPart) : null;
+
+    if (cleanAddress !== normalizedAddress || cleanStreetPart !== doubleSpaceStreetPart) {
+        match = tryMatch(cleanAddress, cleanStreetPart);
+        if (match) return match;
+    }
+
+    // 3. Fallback: if double space split part existed but didn't match in DB, return it as new street found
+    if (cleanStreetPart || doubleSpaceStreetPart) {
+        return {
+            street_id: null,
+            assigned_user_id: null,
+            extractedStreet: cleanStreetPart || doubleSpaceStreetPart,
+            matched: false
+        };
+    }
+
+    // 4. Legacy Fallback
+    const legacyExtracted = extractStreetName(fullAddress);
+    if (legacyExtracted) {
+        const lookup = streetMap.get(legacyExtracted);
+        if (lookup) {
+            return {
+                street_id: lookup.id,
+                assigned_user_id: lookup.user_id || null,
+                extractedStreet: legacyExtracted,
+                matched: true
+            };
+        } else {
+            return {
+                street_id: null,
+                assigned_user_id: null,
+                extractedStreet: legacyExtracted,
+                matched: false
+            };
+        }
+    }
+
+    // 5. Default
+    return {
+        street_id: null,
+        assigned_user_id: null,
+        extractedStreet: null,
+        matched: false
+    };
+}
+
 // ==========================================
 // Controllers
 // ==========================================
@@ -135,6 +275,8 @@ const uploadNotifications = async (req, res, next) => {
         const [streets] = await pool.query('SELECT * FROM streets');
         const [demarcations] = await pool.query('SELECT * FROM demarcations');
 
+        const sortedStreets = [...streets].sort((a, b) => b.name.length - a.name.length);
+
         // Build lookup map: street name (uppercase) -> { id, user_id }
         const streetMap = new Map();
         for (const s of streets) {
@@ -149,9 +291,6 @@ const uploadNotifications = async (req, res, next) => {
         let unassigned = [];
         const newStreetsFound = new Set();
 
-        // We no longer clear notifications automatically so multiple uploads (e.g. different companies) can coexist.
-        // Use the manual clear script or a button if you need to start fresh.
-
         for (const line of lines) {
             if (line.length < 45) continue;
 
@@ -162,37 +301,37 @@ const uploadNotifications = async (req, res, next) => {
             if (!id || !recipient_name || !full_address) continue;
             processed++;
 
-            const extractedStreet = extractStreetName(full_address);
+            const match = parseStreetFromAddress(full_address, sortedStreets, streetMap);
             
-            let street_id = null;
-            let assigned_user_id = null;
+            let street_id = match.street_id;
+            let assigned_user_id = match.assigned_user_id;
 
-            if (extractedStreet) {
-                const lookup = streetMap.get(extractedStreet);
-                if (lookup) {
-                    street_id = lookup.id;
-                    streetMatchedCount++;
-                    assigned_user_id = lookup.user_id;
-                    if (assigned_user_id) userAssignedCount++;
-                } else {
-                    newStreetsFound.add(extractedStreet);
-                }
+            if (match.matched) {
+                streetMatchedCount++;
+                if (assigned_user_id) userAssignedCount++;
+            } else if (match.extractedStreet) {
+                newStreetsFound.add(match.extractedStreet);
             }
+
+            const [insertResult] = await pool.query(`
+                INSERT INTO notifications (id_notificacion, recipient_name, full_address, street_id, assigned_user_id, status, company)
+                VALUES (?, ?, ?, ?, ?, 'PENDIENTE', ?)
+            `, [id, recipient_name, full_address, street_id, assigned_user_id, company]);
+
+            const dbId = insertResult.insertId;
 
             // Unassigned = no user assigned (either no street match or no demarcation)
             if (!assigned_user_id) {
-                unassigned.push({ id, recipient_name, full_address, street_id, assigned_user_id, extracted_street: extractedStreet || null });
+                unassigned.push({ 
+                    id: dbId, 
+                    id_notificacion: id,
+                    recipient_name, 
+                    full_address, 
+                    street_id, 
+                    assigned_user_id, 
+                    extracted_street: match.extractedStreet || null 
+                });
             }
-
-            await pool.query(`
-                INSERT INTO notifications (id, recipient_name, full_address, street_id, assigned_user_id, status, company)
-                VALUES (?, ?, ?, ?, ?, 'PENDIENTE', ?)
-                ON DUPLICATE KEY UPDATE 
-                    recipient_name = VALUES(recipient_name),
-                    full_address = VALUES(full_address),
-                    street_id = VALUES(street_id),
-                    assigned_user_id = VALUES(assigned_user_id)
-            `, [id, recipient_name, full_address, street_id, assigned_user_id, company]);
         }
 
         res.json({
@@ -222,16 +361,22 @@ const extractStreetsOnly = async (req, res, next) => {
         const lines = fileContent.split(/\r?\n/).filter(line => line.trim().length > 0);
 
         const [streets] = await pool.query('SELECT * FROM streets');
-        const streetNamesInDb = new Set(streets.map(s => s.name.toUpperCase().replace(/\s+/g, ' ').trim()));
+        const sortedStreets = [...streets].sort((a, b) => b.name.length - a.name.length);
+        const streetMap = new Map();
+        for (const s of streets) {
+            const key = s.name.toUpperCase().replace(/\s+/g, ' ').trim();
+            streetMap.set(key, { id: s.id, user_id: null });
+        }
+        
         const newStreetsFound = new Set();
 
         for (const line of lines) {
             if (line.length < 45) continue;
             const full_address = line.substring(45).trim();
-            const extractedStreet = extractStreetName(full_address);
+            const match = parseStreetFromAddress(full_address, sortedStreets, streetMap);
             
-            if (extractedStreet && !streetNamesInDb.has(extractedStreet)) {
-                newStreetsFound.add(extractedStreet);
+            if (match.extractedStreet && !match.matched) {
+                newStreetsFound.add(match.extractedStreet);
             }
         }
 
@@ -288,8 +433,8 @@ const bulkAssignByStreet = async (req, res, next) => {
             const lookup = streetMap.get(item.extracted_street.toUpperCase());
             if (lookup) {
                 await pool.query(
-                    'UPDATE notifications SET street_id = ?, assigned_user_id = ? WHERE id = ? AND company = ?',
-                    [lookup.id, lookup.user_id, item.notification_id, item.company]
+                    'UPDATE notifications SET street_id = ?, assigned_user_id = ? WHERE id = ?',
+                    [lookup.id, lookup.user_id, item.notification_id]
                 );
                 assigned++;
             }
@@ -303,18 +448,18 @@ const bulkAssignByStreet = async (req, res, next) => {
 
 const assignManual = async (req, res, next) => {
     try {
-        const { notification_id, street_id, company } = req.body;
+        const { notification_id, street_id } = req.body;
         
-        if (!notification_id || !street_id || !company) {
-            return res.status(400).json({ success: false, error: 'Missing parameters (id, street, company)' });
+        if (!notification_id || !street_id) {
+            return res.status(400).json({ success: false, error: 'Missing parameters (notification_id, street_id)' });
         }
 
         const [demarcationRows] = await pool.query('SELECT user_id FROM demarcations WHERE street_id = ?', [street_id]);
         const user_id = demarcationRows.length > 0 ? demarcationRows[0].user_id : null;
 
         await pool.query(
-            'UPDATE notifications SET street_id = ?, assigned_user_id = ? WHERE id = ? AND company = ?',
-            [street_id, user_id, notification_id, company]
+            'UPDATE notifications SET street_id = ?, assigned_user_id = ? WHERE id = ?',
+            [street_id, user_id, notification_id]
         );
 
         res.json({ success: true, message: 'Notification manually assigned', assigned_user_id: user_id });
@@ -328,6 +473,7 @@ const listNotifications = async (req, res, next) => {
         const [rows] = await pool.query(`
             SELECT 
                 n.id,
+                n.id_notificacion,
                 n.recipient_name,
                 n.full_address,
                 n.street_id,
@@ -350,15 +496,15 @@ const listNotifications = async (req, res, next) => {
 
 const reassignUser = async (req, res, next) => {
     try {
-    const { notification_id, user_id, company } = req.body;
-    if (!notification_id || !company) {
-        return res.status(400).json({ success: false, error: 'Missing notification_id or company' });
+    const { notification_id, user_id } = req.body;
+    if (!notification_id) {
+        return res.status(400).json({ success: false, error: 'Missing notification_id' });
     }
 
     // user_id can be null to unassign
     await pool.query(
-        'UPDATE notifications SET assigned_user_id = ? WHERE id = ? AND company = ?',
-        [user_id || null, notification_id, company]
+        'UPDATE notifications SET assigned_user_id = ? WHERE id = ?',
+        [user_id || null, notification_id]
     );
 
         res.json({ success: true, message: 'Repartidor actualizado' });
@@ -377,13 +523,13 @@ const reassignAll = async (req, res, next) => {
         }
 
         // Load all notifications
-        const [notifications] = await pool.query('SELECT id, street_id, assigned_user_id, company FROM notifications');
+        const [notifications] = await pool.query('SELECT id, street_id, assigned_user_id FROM notifications');
 
         let updated = 0;
         for (const n of notifications) {
             const newUserId = n.street_id ? (demMap.get(n.street_id) || null) : null;
             if (newUserId !== n.assigned_user_id) {
-                await pool.query('UPDATE notifications SET assigned_user_id = ? WHERE id = ? AND company = ?', [newUserId, n.id, n.company]);
+                await pool.query('UPDATE notifications SET assigned_user_id = ? WHERE id = ?', [newUserId, n.id]);
                 updated++;
             }
         }
@@ -397,7 +543,6 @@ const reassignAll = async (req, res, next) => {
 const getNotificationDetails = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { company } = req.query;
 
         // Get notification main data
         const [notifRows] = await pool.query(`
@@ -405,8 +550,8 @@ const getNotificationDetails = async (req, res, next) => {
             FROM notifications n
             LEFT JOIN streets s ON n.street_id = s.id
             LEFT JOIN users u ON n.assigned_user_id = u.id
-            WHERE n.id = ? AND n.company = ?
-        `, [id, company]);
+            WHERE n.id = ?
+        `, [id]);
 
         if (notifRows.length === 0) {
             return res.status(404).json({ success: false, error: 'Notificación no encontrada' });
@@ -417,9 +562,9 @@ const getNotificationDetails = async (req, res, next) => {
             SELECT da.*, u.name as delivered_by_name
             FROM delivery_attempts da
             LEFT JOIN users u ON da.delivered_by = u.id
-            WHERE da.notification_id = ? AND da.company = ?
+            WHERE da.notification_id = ?
             ORDER BY da.attempt_number ASC
-        `, [id, company]);
+        `, [id]);
 
         res.json({
             success: true,
@@ -436,7 +581,6 @@ const getNotificationDetails = async (req, res, next) => {
 const generatePdf = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { company } = req.query;
 
         // Get notification main data
         const [notifRows] = await pool.query(`
@@ -444,8 +588,8 @@ const generatePdf = async (req, res, next) => {
             FROM notifications n
             LEFT JOIN streets s ON n.street_id = s.id
             LEFT JOIN users u ON n.assigned_user_id = u.id
-            WHERE n.id = ? AND n.company = ?
-        `, [id, company]);
+            WHERE n.id = ?
+        `, [id]);
 
         if (notifRows.length === 0) {
             return res.status(404).json({ success: false, error: 'Notificación no encontrada' });
@@ -469,6 +613,11 @@ const generatePdf = async (req, res, next) => {
         doc.pipe(res);
 
         // Build the PDF content
+        const logoPath = path.join(__dirname, '../assets/trinitas_logo.jpg');
+        if (fs.existsSync(logoPath)) {
+            doc.image(logoPath, { fit: [150, 75], align: 'center' });
+            doc.moveDown(1);
+        }
         doc.fontSize(18).text('ACUSE DE RECIBO / NOTIFICACIÓN', { align: 'center' });
         doc.moveDown(1);
         
@@ -481,7 +630,7 @@ const generatePdf = async (req, res, next) => {
             doc.moveDown(1);
         }
 
-        doc.fontSize(12).font('Helvetica-Bold').text('ID Notificación: ', { continued: true }).font('Helvetica').text(notification.id);
+        doc.fontSize(12).font('Helvetica-Bold').text('ID Notificación: ', { continued: true }).font('Helvetica').text(notification.id_notificacion);
         doc.font('Helvetica-Bold').text('Destinatario: ', { continued: true }).font('Helvetica').text(notification.recipient_name);
         doc.font('Helvetica-Bold').text('Dirección: ', { continued: true }).font('Helvetica').text(notification.full_address);
         doc.font('Helvetica-Bold').text('Repartidor: ', { continued: true }).font('Helvetica').text(notification.assigned_user_name || 'Sin asignar');
@@ -538,12 +687,15 @@ const generateBulkPdf = async (req, res, next) => {
             return res.status(400).json({ success: false, error: 'No se proporcionaron datos' });
         }
 
-        // Si viene como string (formato antiguo o compatibilidad), lo parseamos. 
-        // Si viene ya como array de arrays, lo usamos directamente.
-        const pairs = typeof pairsInput === 'string' 
-            ? pairsInput.split(',').map(p => p.split('|'))
-            : pairsInput; 
-
+        const ids = typeof pairsInput === 'string' 
+            ? pairsInput.split(',').map(p => {
+                const parts = p.split('|');
+                return parseInt(parts[0]);
+              })
+            : pairsInput.map(p => {
+                if (Array.isArray(p)) return parseInt(p[0]);
+                return parseInt(p);
+              });
 
         // Get all notifications data
         const [notifRows] = await pool.query(`
@@ -551,9 +703,9 @@ const generateBulkPdf = async (req, res, next) => {
             FROM notifications n
             LEFT JOIN streets s ON n.street_id = s.id
             LEFT JOIN users u ON n.assigned_user_id = u.id
-            WHERE (n.id, n.company) IN (?)
+            WHERE n.id IN (?)
             ORDER BY n.id ASC
-        `, [pairs]);
+        `, [ids]);
 
         if (notifRows.length === 0) {
             return res.status(404).json({ success: false, error: 'No se encontraron notificaciones' });
@@ -564,22 +716,37 @@ const generateBulkPdf = async (req, res, next) => {
             SELECT da.*, u.name as delivered_by_name
             FROM delivery_attempts da
             LEFT JOIN users u ON da.delivered_by = u.id
-            WHERE (da.notification_id, da.company) IN (?)
+            WHERE da.notification_id IN (?)
             ORDER BY da.notification_id ASC, da.attempt_number ASC
-        `, [pairs]);
+        `, [ids]);
 
         // Map attempts to notifications for easy access
         const attemptsByNotif = {};
         attemptRows.forEach(att => {
-            const key = `${att.notification_id}|${att.company}`;
+            const key = att.notification_id;
             if (!attemptsByNotif[key]) attemptsByNotif[key] = [];
             attemptsByNotif[key].push(att);
         });
 
-        const doc = new PDFDocument({ margin: 40 });
+        const doc = new PDFDocument({ margin: 40, layout: 'landscape' });
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="export_notificaciones_${new Date().getTime()}.pdf"`);
         doc.pipe(res);
+
+        // Helper to draw table header in landscape
+        const drawHeader = (doc, startX, y) => {
+            doc.fontSize(8).font('Helvetica-Bold');
+            doc.text('ID', startX, y, { width: 50 });
+            doc.text('DESTINATARIO', startX + 55, y, { width: 140 });
+            doc.text('EMPRESA', startX + 200, y, { width: 85 });
+            doc.text('ESTADO', startX + 290, y, { width: 75 });
+            doc.text('REPARTIDOR', startX + 370, y, { width: 85 });
+            doc.text('FECHA CARGA', startX + 460, y, { width: 75 });
+            doc.text('INTENTO 1', startX + 540, y, { width: 110 });
+            doc.text('INTENTO 2', startX + 655, y, { width: 105 });
+            
+            doc.moveTo(startX, y + 12).lineTo(800, y + 12).stroke();
+        };
 
         // --- PAGE 1: SUMMARY LIST ---
         doc.fontSize(18).font('Helvetica-Bold').text('RESUMEN DE NOTIFICACIONES', { align: 'center' });
@@ -590,34 +757,36 @@ const generateBulkPdf = async (req, res, next) => {
         // Table Header
         const startX = 40;
         let currentY = doc.y;
-        doc.fontSize(8).font('Helvetica-Bold');
-        doc.text('ID', startX, currentY, { width: 45 });
-        doc.text('DESTINATARIO', startX + 50, currentY, { width: 100 });
-        doc.text('EMPRESA', startX + 155, currentY, { width: 75 });
-        doc.text('ESTADO', startX + 235, currentY, { width: 70 });
-        doc.text('REPARTIDOR', startX + 310, currentY, { width: 70 });
-        doc.text('FECHA CARGA', startX + 385, currentY, { width: 65 });
-        doc.text('INTENTOS', startX + 455, currentY, { width: 60 });
         
-        doc.moveTo(startX, currentY + 12).lineTo(550, currentY + 12).stroke();
+        drawHeader(doc, startX, currentY);
         currentY += 20;
 
         // Table Rows
         doc.font('Helvetica');
         notifRows.forEach(n => {
-            if (currentY > 700) {
-                doc.addPage();
+            if (currentY > 500) {
+                doc.addPage({ layout: 'landscape' });
                 currentY = 40;
+                drawHeader(doc, startX, currentY);
+                currentY += 20;
             }
 
-            const key = `${n.id}|${n.company}`;
+            const key = n.id;
             const attempts = attemptsByNotif[key] || [];
-            const attemptDatesStr = attempts.map(att => {
+
+            const formatAttempt = (att) => {
+                if (!att) return '-';
                 const d = new Date(att.timestamp);
                 const day = String(d.getDate()).padStart(2, '0');
                 const month = String(d.getMonth() + 1).padStart(2, '0');
-                return `${day}/${month}`;
-            }).join(', ') || '-';
+                const year = d.getFullYear();
+                const hours = String(d.getHours()).padStart(2, '0');
+                const minutes = String(d.getMinutes()).padStart(2, '0');
+                return `${day}/${month}/${year} ${hours}:${minutes}`;
+            };
+
+            const attempt1Str = formatAttempt(attempts[0]);
+            const attempt2Str = formatAttempt(attempts[1]);
 
             const loadDateStr = n.created_at ? (() => {
                 const d = new Date(n.created_at);
@@ -626,25 +795,33 @@ const generateBulkPdf = async (req, res, next) => {
                 return `${day}/${month}/${d.getFullYear()}`;
             })() : '-';
 
-            const companyShort = n.company === 'ENERGIA_CEUTA' ? 'Energía Ceuta' : 'Alumbrado';
+            const compName = COMPANIES[n.company]?.name || n.company;
 
-            doc.text(n.id, startX, currentY, { width: 45 });
-            doc.text(n.recipient_name, startX + 50, currentY, { width: 100, height: 10, ellipsis: true });
-            doc.text(companyShort, startX + 155, currentY, { width: 75, height: 10, ellipsis: true });
-            doc.text(n.status, startX + 235, currentY, { width: 70 });
-            doc.text(n.assigned_user_name || '-', startX + 310, currentY, { width: 70, height: 10, ellipsis: true });
-            doc.text(loadDateStr, startX + 385, currentY, { width: 65 });
-            doc.text(attemptDatesStr, startX + 455, currentY, { width: 60 });
-            currentY += 15;
+            doc.fontSize(8);
+            doc.text(n.id_notificacion, startX, currentY, { width: 50 });
+            doc.text(n.recipient_name, startX + 55, currentY, { width: 140 });
+            doc.text(compName, startX + 200, currentY, { width: 85 });
+            doc.text(n.status, startX + 290, currentY, { width: 75 });
+            doc.text(n.assigned_user_name || 'Sin Asignar', startX + 370, currentY, { width: 85 });
+            doc.text(loadDateStr, startX + 460, currentY, { width: 75 });
+            doc.text(attempt1Str, startX + 540, currentY, { width: 110 });
+            doc.text(attempt2Str, startX + 655, currentY, { width: 105 });
+            currentY += 20;
         });
 
         // --- INDIVIDUAL RECEIPT PAGES ---
         notifRows.forEach(notification => {
-            const key = `${notification.id}|${notification.company}`;
+            const key = notification.id;
             const attempts = attemptsByNotif[key] || [];
             
             // Replicate the individual acuse logic for each notification
-            doc.addPage();
+            doc.addPage({ layout: 'portrait', margin: 50 });
+            
+            const logoPath = path.join(__dirname, '../assets/trinitas_logo.jpg');
+            if (fs.existsSync(logoPath)) {
+                doc.image(logoPath, { fit: [150, 75], align: 'center' });
+                doc.moveDown(1);
+            }
             
             doc.fontSize(18).font('Helvetica-Bold').text('ACUSE DE RECIBO / NOTIFICACIÓN', { align: 'center' });
             doc.moveDown(1);
@@ -658,7 +835,7 @@ const generateBulkPdf = async (req, res, next) => {
                 doc.moveDown(1);
             }
 
-            doc.fontSize(12).font('Helvetica-Bold').text('ID Notificación: ', { continued: true }).font('Helvetica').text(notification.id);
+            doc.fontSize(12).font('Helvetica-Bold').text('ID Notificación: ', { continued: true }).font('Helvetica').text(notification.id_notificacion);
             doc.font('Helvetica-Bold').text('Destinatario: ', { continued: true }).font('Helvetica').text(notification.recipient_name);
             doc.font('Helvetica-Bold').text('Dirección: ', { continued: true }).font('Helvetica').text(notification.full_address);
             doc.font('Helvetica-Bold').text('Repartidor: ', { continued: true }).font('Helvetica').text(notification.assigned_user_name || 'Sin asignar');
@@ -724,6 +901,7 @@ const getReportByDate = async (req, res, next) => {
         const query = `
             SELECT 
                 n.id, 
+                n.id_notificacion,
                 n.recipient_name, 
                 n.full_address, 
                 n.status,
@@ -737,8 +915,8 @@ const getReportByDate = async (req, res, next) => {
                 da1.notes as first_notes,
                 da2.notes as second_notes
             FROM notifications n
-            LEFT JOIN delivery_attempts da1 ON n.id = da1.notification_id AND n.company = da1.company AND da1.attempt_number = 1
-            LEFT JOIN delivery_attempts da2 ON n.id = da2.notification_id AND n.company = da2.company AND da2.attempt_number = 2
+            LEFT JOIN delivery_attempts da1 ON n.id = da1.notification_id AND da1.attempt_number = 1
+            LEFT JOIN delivery_attempts da2 ON n.id = da2.notification_id AND da2.attempt_number = 2
             LEFT JOIN users u ON n.assigned_user_id = u.id
             WHERE DATE(n.created_at) = ?
             ORDER BY n.id ASC

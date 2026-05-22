@@ -22,26 +22,32 @@ CREATE TABLE IF NOT EXISTS Demarcations (
 );
 
 CREATE TABLE IF NOT EXISTS Notifications (
-    id VARCHAR(5) PRIMARY KEY, -- id like '00001'
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_notificacion VARCHAR(10) NOT NULL,
     recipient_name VARCHAR(255) NOT NULL,
     full_address VARCHAR(255) NOT NULL,
     street_id INT,
     assigned_user_id INT,
-    status ENUM('PENDING', 'ATTEMPT_1', 'DELIVERED', 'RETURNED', 'FAILED') DEFAULT 'PENDING',
+    status ENUM('PENDIENTE', '1ER_INTENTO', 'ENTREGADA', 'DEVUELTA', 'FALLIDA') DEFAULT 'PENDIENTE',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    company VARCHAR(50) NOT NULL,
     FOREIGN KEY (street_id) REFERENCES Streets(id) ON DELETE SET NULL,
     FOREIGN KEY (assigned_user_id) REFERENCES Users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS Delivery_Attempts (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    notification_id VARCHAR(5) NOT NULL,
+    notification_id INT NOT NULL,
     attempt_number INT NOT NULL CHECK (attempt_number IN (1, 2)),
     timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    status_result ENUM('DELIVERED', 'ABSENT', 'REFUSED', 'UNKNOWN') NOT NULL,
-    receiver_name VARCHAR(255) NULL,
-    receiver_dni VARCHAR(20) NULL,
+    status_result ENUM('ENTREGADA', 'AUSENTE', 'REHUSADO', 'DESCONOCIDO') NOT NULL,
+    receiver_name VARCHAR(255) DEFAULT NULL,
+    receiver_dni VARCHAR(20) DEFAULT NULL,
     signature_base64 LONGTEXT NULL,
     delivered_by INT NOT NULL,
+    notes TEXT DEFAULT NULL,
+    company VARCHAR(50) NOT NULL,
+    UNIQUE KEY unq_notification_attempt (notification_id, attempt_number),
     FOREIGN KEY (notification_id) REFERENCES Notifications(id) ON DELETE CASCADE,
     FOREIGN KEY (delivered_by) REFERENCES Users(id) ON DELETE CASCADE
 );

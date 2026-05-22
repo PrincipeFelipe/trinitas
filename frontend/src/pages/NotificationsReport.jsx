@@ -73,7 +73,7 @@ export default function NotificationsReport() {
         const statusMatch = filterStatus === 'ALL' || row.status !== 'PENDIENTE';
         const searchMatch = !search || 
             row.recipient_name.toLowerCase().includes(search.toLowerCase()) ||
-            row.id.toLowerCase().includes(search.toLowerCase()) ||
+            row.id_notificacion.toLowerCase().includes(search.toLowerCase()) ||
             row.full_address.toLowerCase().includes(search.toLowerCase());
         
         return companyMatch && statusMatch && searchMatch;
@@ -99,7 +99,7 @@ export default function NotificationsReport() {
         if (filteredData.length === 0) return;
 
         const dataToExport = filteredData.map(row => ({
-            'ID Notificación': row.id,
+            'ID Notificación': row.id_notificacion,
             'Empresa': row.company ? COMPANIES[row.company]?.name : 'No especificada',
             'Destinatario': row.recipient_name,
             'Dirección': row.full_address,
@@ -439,7 +439,7 @@ export default function NotificationsReport() {
                                 const isDelivered = row.status === 'ENTREGADA';
                                 return (
                                     <tr key={`${row.id}-${row.company}`} onClick={() => handleRowClick(row.id, row.company)}>
-                                        <td style={{ fontWeight: 700, fontFamily: 'monospace' }}>{row.id}</td>
+                                        <td style={{ fontWeight: 700, fontFamily: 'monospace' }}>{row.id_notificacion}</td>
                                         <td style={{ fontSize: '0.8rem', color: '#1a6fb5', fontWeight: 600 }}>{row.company ? COMPANY_SHORT_NAMES[row.company] : '-'}</td>
                                         <td>{row.recipient_name}</td>
                                         <td>
@@ -472,7 +472,7 @@ export default function NotificationsReport() {
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <div>
-                                <h2>Detalles de Notificación #{selectedItem.id}</h2>
+                                <h2>Detalles de Notificación #{selectedItem.id_notificacion}</h2>
                                 <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.9rem' }}>
                                     Cargada el {new Date(selectedItem.created_at).toLocaleDateString()}
                                 </p>

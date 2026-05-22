@@ -46,7 +46,7 @@ export default function ReceiptsHistory() {
     };
 
     const filtered = history.filter(item => 
-        item.id.includes(search) || item.recipient_name.toLowerCase().includes(search.toLowerCase())
+        item.id_notificacion.toLowerCase().includes(search.toLowerCase()) || item.recipient_name.toLowerCase().includes(search.toLowerCase())
     );
 
     return (
@@ -76,7 +76,7 @@ export default function ReceiptsHistory() {
                         <tbody>
                             {filtered.map(item => (
                                 <tr key={`${item.id}-${item.company}`}>
-                                    <td>{item.id}</td>
+                                    <td>{item.id_notificacion}</td>
                                     <td>{item.recipient_name}</td>
                                     <td>{item.full_address}</td>
                                     <td>

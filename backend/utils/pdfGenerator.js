@@ -21,8 +21,8 @@ const generateReceiptPDF = async (notification_id, company) => {
             SELECT n.*, s.name as street_name 
             FROM notifications n 
             LEFT JOIN streets s ON n.street_id = s.id 
-            WHERE n.id = ? AND n.company = ?
-        `, [notification_id, company]);
+            WHERE n.id = ?
+        `, [notification_id]);
         
         if (notifRows.length === 0) return;
         const notification = notifRows[0];
@@ -31,9 +31,9 @@ const generateReceiptPDF = async (notification_id, company) => {
             SELECT da.*, u.name as courier_name 
             FROM delivery_attempts da 
             LEFT JOIN users u ON da.delivered_by = u.id 
-            WHERE da.notification_id = ? AND da.company = ?
+            WHERE da.notification_id = ?
             ORDER BY da.attempt_number ASC
-        `, [notification_id, company]);
+        `, [notification_id]);
 
         const doc = new PDFDocument({ margin: 50 });
         const filePath = path.join(RECEIPTS_DIR, `${notification_id}-${company}.pdf`);
@@ -42,18 +42,23 @@ const generateReceiptPDF = async (notification_id, company) => {
         doc.pipe(stream);
 
         // Header
+        const logoPath = path.join(__dirname, '../assets/trinitas_logo.jpg');
+        if (fs.existsSync(logoPath)) {
+            doc.image(logoPath, { fit: [150, 75], align: 'center' });
+            doc.moveDown(1);
+        }
         const companyData = COMPANIES[notification.company] || { name: 'Trinitas', cif: '' };
         doc.fontSize(16).font('Helvetica-Bold').text(companyData.name, { align: 'center' });
         if (companyData.cif) doc.fontSize(10).font('Helvetica').text(`CIF: ${companyData.cif}`, { align: 'center' });
         doc.moveDown(0.5);
         doc.fontSize(18).font('Helvetica-Bold').text('ACUSE DE RECIBO', { align: 'center' });
         doc.moveDown();
-        doc.moveTo(50, 110).lineTo(550, 110).stroke();
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
         doc.moveDown(2);
 
         // Notification Info
         doc.fontSize(14).font('Helvetica-Bold').text('Datos de la Notificación');
-        doc.fontSize(12).font('Helvetica').text(`ID Notificación: ${notification.id}`);
+        doc.fontSize(12).font('Helvetica').text(`ID Notificación: ${notification.id_notificacion}`);
         doc.text(`Destinatario: ${notification.recipient_name}`);
         doc.text(`Dirección: ${notification.full_address}`);
         doc.text(`Calle Asignada: ${notification.street_name || 'Ninguna'}`);

@@ -387,7 +387,7 @@ function RouteList({ route, onSelect, user, onLogout }) {
                         return (
                             <div key={`${item.id}-${item.company}`} className={`mobile-card border-${urgency}`} onClick={() => onSelect(item)}>
                                 <div className="card-header">
-                                    <span className="item-id">#{item.id}</span>
+                                    <span className="item-id">#{item.id_notificacion}</span>
                                     <span className={`attempt-pill attempt-${item.current_attempt_number}`}>
                                         Intento {item.current_attempt_number}
                                     </span>
@@ -488,7 +488,7 @@ function DeliveryAction({ item, onBack }) {
         <div className="mobile-view delivery-action">
             <header className="mobile-header">
                 <button className="btn-back" onClick={onBack}>← Volver</button>
-                <h2>Notificación #{item.id}</h2>
+                <h2>Notificación #{item.id_notificacion}</h2>
             </header>
             <div className="mobile-body">
                 <div className="info-box">

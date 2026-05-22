@@ -10,6 +10,11 @@ export default function UploadNotifications() {
     const [results, setResults] = useState(null);
     const [streets, setStreets] = useState([]);
     
+    const handleReset = () => {
+        setFile(null);
+        setResults(null);
+    };
+
     const fetchStreets = async () => {
         const res = await apiClient.get('/streets');
         if (res.data.success) setStreets(res.data.data);
@@ -162,8 +167,43 @@ export default function UploadNotifications() {
             `}</style>
 
             <div className="upload-container">
-                <header className="upload-header">
-                    <p>Seleccione la empresa emisora y arrastre el informe diario delimitado (ancho fijo).</p>
+                <header className="upload-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+                    {!results ? (
+                        <p style={{ margin: 0 }}>Seleccione la empresa emisora y arrastre el informe diario delimitado (ancho fijo).</p>
+                    ) : (
+                        <p style={{ margin: 0, fontWeight: 500, color: '#666' }}>
+                            Resumen del archivo procesado para <strong style={{ color: '#333' }}>{company === 'ENERGIA_CEUTA' ? 'Energía Ceuta' : 'Alumbrado Ceuta'}</strong>
+                        </p>
+                    )}
+                    {results && (
+                        <button 
+                            onClick={handleReset}
+                            style={{
+                                background: '#f0f4f8',
+                                color: '#1a6fb5',
+                                border: '1px solid #1a6fb5',
+                                padding: '8px 16px',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = '#1a6fb5';
+                                e.currentTarget.style.color = '#fff';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = '#f0f4f8';
+                                e.currentTarget.style.color = '#1a6fb5';
+                            }}
+                        >
+                            ↺ Subir otro archivo
+                        </button>
+                    )}
                 </header>
 
                 {!results && (
@@ -298,7 +338,7 @@ function AssignmentCard({ item, streets, onAssign }) {
         <div className="notif-card">
             <div>
                 <div className="field-label">ID</div>
-                <div className="field-value" style={{ fontWeight: 700 }}>{item.id}</div>
+                <div className="field-value" style={{ fontWeight: 700 }}>{item.id_notificacion}</div>
             </div>
             <div>
                 <div className="field-label">Destinatario</div>

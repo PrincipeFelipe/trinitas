@@ -137,7 +137,7 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
         const [courierStats] = await pool.query(`
             SELECT 
                 u.name,
-                COUNT(DISTINCT CONCAT(n.id, n.company)) as total_assigned,
+                COUNT(DISTINCT n.id) as total_assigned,
                 SUM(CASE WHEN n.status = 'ENTREGADA' THEN 1 ELSE 0 END) as delivered,
                 SUM(CASE WHEN n.status = 'DEVUELTA' THEN 1 ELSE 0 END) as returned
             FROM users u
@@ -216,12 +216,13 @@ router.get('/activity/:date', verifyToken, requireAdmin, async (req, res, next) 
                 da.status_result,
                 da.notes,
                 n.id as notification_id,
+                n.id_notificacion,
                 n.recipient_name,
                 n.full_address,
                 n.company,
                 u.name as courier_name
             FROM delivery_attempts da
-            JOIN notifications n ON da.notification_id = n.id AND da.company = n.company
+            JOIN notifications n ON da.notification_id = n.id
             LEFT JOIN users u ON da.delivered_by = u.id
             WHERE DATE(da.timestamp) = ?
             ORDER BY da.timestamp DESC

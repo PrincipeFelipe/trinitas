@@ -140,7 +140,7 @@ export default function NotificationsList() {
     const filtered = notifications.filter(n => {
         const companyName = n.company ? COMPANY_SHORT_NAMES[n.company] : '';
         const matchesSearch = !search || 
-            n.id.includes(search) ||
+            n.id_notificacion.toLowerCase().includes(search.toLowerCase()) ||
             n.recipient_name.toLowerCase().includes(search.toLowerCase()) ||
             n.full_address.toLowerCase().includes(search.toLowerCase()) ||
             (n.street_name && n.street_name.toLowerCase().includes(search.toLowerCase())) ||
@@ -548,7 +548,7 @@ export default function NotificationsList() {
                                      <div className="col">
                                          <div className="fl">ID</div>
                                          <div className="fv id-text">
-                                             {n.id}
+                                             {n.id_notificacion}
                                              <div style={{ fontSize: '0.72rem', color: '#718096', marginTop: '3px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '3px' }}>
                                                  <span>📅</span>
                                                  <span>{n.created_at ? new Date(n.created_at).toLocaleDateString('es-ES') : '-'}</span>
@@ -648,7 +648,7 @@ export default function NotificationsList() {
                             <div className="modal-content" onClick={e => e.stopPropagation()}>
                                 <div className="modal-header">
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                        <h2>Detalles de Notificación #{selectedDetail.id}</h2>
+                                        <h2>Detalles de Notificación #{selectedDetail.id_notificacion}</h2>
                                         {['ENTREGADA', 'DEVUELTA', 'FALLIDA'].includes(selectedDetail.status) && (
                                             <button className="btn-download-pdf" onClick={() => handleDownloadPdf(selectedDetail.id, selectedDetail.company)}>
                                                 📄 PDF

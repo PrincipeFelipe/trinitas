@@ -4,7 +4,7 @@ const getMyRoute = async (req, res, next) => {
     try {
         const query = `
             SELECT n.*, 
-                   (SELECT COUNT(*) FROM delivery_attempts da WHERE da.notification_id = n.id AND da.company = n.company) as attempt_count,
+                   (SELECT COUNT(*) FROM delivery_attempts da WHERE da.notification_id = n.id) as attempt_count,
                    s.name as street_name
             FROM notifications n
             LEFT JOIN streets s ON n.street_id = s.id
@@ -36,7 +36,7 @@ const recordAttempt = async (req, res, next) => {
         }
 
         // Count previous attempts
-        const [attRows] = await pool.query('SELECT COUNT(*) as count FROM delivery_attempts WHERE notification_id = ? AND company = ?', [notification_id, company]);
+        const [attRows] = await pool.query('SELECT COUNT(*) as count FROM delivery_attempts WHERE notification_id = ?', [notification_id]);
         let attemptCount = attRows[0].count;
         
         if (attemptCount >= 2) {
@@ -68,7 +68,7 @@ const recordAttempt = async (req, res, next) => {
         }
 
         // Update Notification table
-        await pool.query('UPDATE notifications SET status = ? WHERE id = ? AND company = ?', [newNotificationStatus, notification_id, company]);
+        await pool.query('UPDATE notifications SET status = ? WHERE id = ?', [newNotificationStatus, notification_id]);
 
         // Trigger PDF Compilation if finalized
         if (newNotificationStatus === 'ENTREGADA' || newNotificationStatus === 'DEVUELTA') {
