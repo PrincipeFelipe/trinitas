@@ -1,0 +1,2118 @@
+{
+  "exported_at": "2026-05-22T22:27:32.222Z",
+  "users": [
+    {
+      "name": "ALVARO",
+      "username": "alvaro",
+      "password_hash": "$2b$10$a.xO3F8Ck2XLvEJfi9ysdOEaI1MnnhdHFGkA2FTNTrt56mnL1piX6",
+      "role": "REPARTIDOR"
+    },
+    {
+      "name": "ANGELA",
+      "username": "angela",
+      "password_hash": "$2b$10$a.xO3F8Ck2XLvEJfi9ysdOEaI1MnnhdHFGkA2FTNTrt56mnL1piX6",
+      "role": "REPARTIDOR"
+    },
+    {
+      "name": "ANTONIO",
+      "username": "antonio",
+      "password_hash": "$2b$10$a.xO3F8Ck2XLvEJfi9ysdOEaI1MnnhdHFGkA2FTNTrt56mnL1piX6",
+      "role": "REPARTIDOR"
+    },
+    {
+      "name": "JAVIER",
+      "username": "javier",
+      "password_hash": "$2b$10$a.xO3F8Ck2XLvEJfi9ysdOEaI1MnnhdHFGkA2FTNTrt56mnL1piX6",
+      "role": "REPARTIDOR"
+    },
+    {
+      "name": "MARIA",
+      "username": "maria",
+      "password_hash": "$2b$10$a.xO3F8Ck2XLvEJfi9ysdOEaI1MnnhdHFGkA2FTNTrt56mnL1piX6",
+      "role": "REPARTIDOR"
+    },
+    {
+      "name": "MIGUEL",
+      "username": "miguel",
+      "password_hash": "$2b$10$a.xO3F8Ck2XLvEJfi9ysdOEaI1MnnhdHFGkA2FTNTrt56mnL1piX6",
+      "role": "REPARTIDOR"
+    },
+    {
+      "name": "MOHAMED",
+      "username": "mohamed",
+      "password_hash": "$2b$10$a.xO3F8Ck2XLvEJfi9ysdOEaI1MnnhdHFGkA2FTNTrt56mnL1piX6",
+      "role": "REPARTIDOR"
+    },
+    {
+      "name": "MOHAMED2",
+      "username": "mohamed2",
+      "password_hash": "$2b$10$a.xO3F8Ck2XLvEJfi9ysdOEaI1MnnhdHFGkA2FTNTrt56mnL1piX6",
+      "role": "REPARTIDOR"
+    },
+    {
+      "name": "RAUL",
+      "username": "raul",
+      "password_hash": "$2b$10$a.xO3F8Ck2XLvEJfi9ysdOEaI1MnnhdHFGkA2FTNTrt56mnL1piX6",
+      "role": "REPARTIDOR"
+    }
+  ],
+  "streets": [
+    "ARROYO CAÑAVERAL",
+    "ARROYO DE LAS BOMBAS",
+    "AVENIDA ARGENTINA (SAN JOSE)",
+    "AVENIDA ARGENTINA (VILLA AURORA)",
+    "AVENIDA COMPAÑIA DE MAR",
+    "AVENIDA DE AFRICA",
+    "AVENIDA DE BARCELONA",
+    "AVENIDA DE ESPAÑA",
+    "AVENIDA DE LISBOA (LA LIBERTAD)",
+    "AVENIDA DE MADRID",
+    "AVENIDA DOCTOR MARAÑON (ODONNEL)",
+    "AVENIDA EJERCITO ESPAÑOL",
+    "AVENIDA JUAN DE BORBON",
+    "AVENIDA MARTINEZ CATENA",
+    "AVENIDA MIGUEL ARRUDA",
+    "AVENIDA NUESTRA SEÑORA DE OTERO",
+    "AVENIDA REGULARES",
+    "AVENIDA REYES CATOLICOS",
+    "AVENIDA SAN FCO. JAVIER (ANGULO)",
+    "AVENIDA SAN JUAN DE DIOS",
+    "AVENIDA TTE. GENERAL MUSLERA",
+    "BARRIADA ALMADRABA",
+    "BARRIADA BENITEZ",
+    "BARRIADA BENZU",
+    "BARRIADA DOCE DE DICIEMBRE",
+    "BARRIADA ERQUICIA",
+    "BARRIADA JUAN CARLOS I",
+    "BARRIADA LA LEALTAD (SAN AMARO)",
+    "BARRIADA LA LIBERTAD",
+    "BARRIADA LOS ROSALES",
+    "BARRIADA MANZANERA",
+    "BARRIADA MIRAMAR",
+    "BARRIADA ODONNEL",
+    "BARRIADA POSTIGO",
+    "BARRIADA PRINCIPE ALFONSO",
+    "BARRIADA SAN AMARO",
+    "BARRIADA SARCHAL",
+    "BARRIADA SARDINERO",
+    "BARRIADA TARAJAL",
+    "BARRIADA TERRONES",
+    "BARRIO DE LA SALUD",
+    "CALLE A (BDA. LA LIBERTAD)",
+    "CALLE ADORATRICES (BDA. SARDINERO)",
+    "CALLE AGRUPACION CENTRAL(PRINCIPE ALFONSO)",
+    "CALLE AGRUPACION ESTE (PRINCIPE ALFONSO)",
+    "CALLE AGRUPACION FUERTE(PRINCIPE ALFONSO)",
+    "CALLE AGRUPACION NORTE (PRINCIPE ALFONSO)",
+    "CALLE AGRUPACION SUR(BDA PRINCIPE ALFONSO)",
+    "CALLE AGUSTINA DE ARAGON",
+    "CALLE ALBERGUE AYUNTAMIENTO",
+    "CALLE ALCALA DEL VALLE",
+    "CALLE ALCALDE CLEMENTE CALVO PECINO",
+    "CALLE ALCALDE FRUCTUOSO MIAJA SANCHEZ",
+    "CALLE ALCALDE JOSE VICTORI GOÑALONS",
+    "CALLE ALFAU",
+    "CALLE ALFEREZ BAYTON",
+    "CALLE ALFEREZ DE LA RUBIA (SAN JOSE)",
+    "CALLE ALFEREZ PROVISIONAL",
+    "CALLE ALFONSO VIII (BDA. TERRONES)",
+    "CALLE ALGECIRAS",
+    "CALLE ALMERIA (BDA. ESPAÑA)",
+    "CALLE ALMIRANTE LOBO",
+    "CALLE ALONSO DE OJEDA (BDA. ODONNEL)",
+    "CALLE ALTA (BDA. LA LIBERTAD)",
+    "CALLE ALTO DE LAS HERAS",
+    "CALLE ALVAREZ",
+    "CALLE AMARGURA",
+    "CALLE ANDALUCIA (BDA. ESPAÑA)",
+    "CALLE ANDRES DEL RIO ABAURREA",
+    "CALLE ANTIOCO",
+    "CALLE ANTONIA CESPEDES GALLEGO",
+    "CALLE APOSTOL SANTIAGO (BDA.TERRONES)",
+    "CALLE ARCOS QUEBRADOS",
+    "CALLE AYMAT GONZALEZ (BDA. TERRONES)",
+    "CALLE AZUL (BDA. LA LIBERTAD)",
+    "CALLE B (BDA. LA LIBERTAD)",
+    "CALLE BARO ALEGRET (BDA. SAN JOSE)",
+    "CALLE BEATRIZ DE SILVA",
+    "CALLE BEN ALI (BDA. ESPAÑA)",
+    "CALLE BENTOLILA (BDA. ESPAÑA)",
+    "CALLE BERMUDO SORIANO (BDA. SAN JOSE)",
+    "CALLE BLOND MESA (BDA. SAN JOSE)",
+    "CALLE BOLIVIA (BDA. SAN JOSE)",
+    "CALLE BRULL",
+    "CALLE BUENDIA RUIZ (BDA. SAN JOSE)",
+    "CALLE CACHINERO REINA (BDA. SAN JOSE)",
+    "CALLE CADIZ (BDA. ESPAÑA)",
+    "CALLE CALDERON DE LA BARCA (V-JOVITA)",
+    "CALLE CAMOENS",
+    "CALLE CANALEJAS",
+    "CALLE CAPITAN CLAUDIO VAZQUEZ",
+    "CALLE CAPITAN NOREÑA (BDA. ESPAÑA)",
+    "CALLE CASTILLO ARTIEL (BDA. SAN JOSE)",
+    "CALLE CASTILLO HIDALGO (BDA.SAN JOSE)",
+    "CALLE CERVANTES",
+    "CALLE CESPED (BDA. MIRAMAR)",
+    "CALLE CHICA BERNAL (BDA. ESPAÑA)",
+    "CALLE CHILE (BDA. SAN JOSE)",
+    "CALLE CINCO HERMANOS LAHULET",
+    "CALLE CIUDAD DE ACICATENA",
+    "CALLE CIUDAD REAL (BDA. ESPAÑA)",
+    "CALLE CIUDAD TRUJILLO",
+    "CALLE CIVICO MURCIANO (BDA. SAN JOSE)",
+    "CALLE CLAUDIO COELLO (BDA. ODONNEL)",
+    "CALLE CMTE.RUBIA PACHECO (SAN JOSE)",
+    "CALLE COLOMBIA (BDA. SAN JOSE)",
+    "CALLE COLONIA ROMEU (BDA. ALMADRABA)",
+    "CALLE COLONIA WEIL (BDA.VILLA JOVITA)",
+    "CALLE CONRADO ALVAREZ",
+    "CALLE CONVOY DE LA VICTORIA (TERRONES)",
+    "CALLE CORDOBA (BDA. SAN JOSE)",
+    "CALLE CORREA",
+    "CALLE CORTADURA DEL VALLE",
+    "CALLE DAOIZ",
+    "CALLE DELGADO SERRANO",
+    "CALLE DOCTOR FLEMING",
+    "CALLE DOCTORA SORAYA",
+    "CALLE DUARTE",
+    "CALLE DUEÑAS",
+    "CALLE ECHEGARAY",
+    "CALLE EL CID CAMPEADOR (BDA.TERRONES)",
+    "CALLE EL GRECO (BDA. ODONNEL)",
+    "CALLE ENRIQUE EL NAVEGANTE",
+    "CALLE ESCUELAS PRACTICAS",
+    "CALLE ESPAÑOLETO (BDA. ODONNEL)",
+    "CALLE ESPINO",
+    "CALLE ESTACION MARITIMA",
+    "CALLE ESTEPONA (BDA. TERRONES)",
+    "CALLE ESTRELLA",
+    "CALLE FAJARDO MARTINEZ (BDA.SAN JOSE)",
+    "CALLE FELIPE II (BDA. TERRONES)",
+    "CALLE FERNANDEZ",
+    "CALLE FERNANDEZ AMADOR (BDA.SAN JOSE)",
+    "CALLE FERNANDO EL SANTO (BDA.TERRONES)",
+    "CALLE FERRERO VISO (BDA. SAN JOSE)",
+    "CALLE FLECHA BERMUDEZ (BDA. ODONNEL)",
+    "CALLE FLORENTINO GOMEZ MACEDO",
+    "CALLE FLORIA ORDOÑEZ (BDA. ESPAÑA)",
+    "CALLE FRANCISCO DE ORELLANA (ODONNEL)",
+    "CALLE FRANCISCO LERIA (BDA. SAN JOSE)",
+    "CALLE FRANCISCO PIZARRO (BDA ODONNEL)",
+    "CALLE FRANCISCO RIBALTA (BDA.ODONNEL)",
+    "CALLE FUENTE CABALLO",
+    "CALLE FUENTE TERRONES",
+    "CALLE GALEA",
+    "CALLE GARCIA",
+    "CALLE GARCIA BENITEZ (BDA. ESPAÑA)",
+    "CALLE GARCIA MORATO (BDA. ESPAÑA)",
+    "CALLE GENARO LUCAS (BDA.VILLA JOVITA)",
+    "CALLE GENERAL ARANDA",
+    "CALLE GENERAL SERRANO ORIVE",
+    "CALLE GOMEZ MARCELO",
+    "CALLE GONGORA (BDA. VILLA JOVITA)",
+    "CALLE GONZALEZ BESADA",
+    "CALLE GONZALEZ DE LA VEGA",
+    "CALLE GOYA (BDA. ODONNEL)",
+    "CALLE GRANADA (BDA. ESPAÑA)",
+    "CALLE GUERRERO SANCHEZ (BDA. ESPAÑA)",
+    "CALLE HERMANOS PINZON (BDA. ODONNEL)",
+    "CALLE HERNAN CORTES (BDA. ODONNEL)",
+    "CALLE HERNANDO DE SOTO (BDA. ODONNEL)",
+    "CALLE HUELVA (BDA. ESPAÑA)",
+    "CALLE IBIZA",
+    "CALLE INDEPENDENCIA",
+    "CALLE INGENIEROS",
+    "CALLE ISABEL CABRAL",
+    "CALLE ISIDORO MARTINEZ",
+    "CALLE JACINTO BENAVENTE (VILLA JOVITA)",
+    "CALLE JAEN (BDA. ESPAÑA)",
+    "CALLE JAUDENES",
+    "CALLE JOAQUIN SOROLLA (BDA. ODONNEL)",
+    "CALLE JOSE Mª DE PEREDA (VILLA JOVITA)",
+    "CALLE JOSE SANTOS VILELA (SAN JOSE)",
+    "CALLE JUAN DE AUSTRIA (BDA. TERRONES)",
+    "CALLE JUAN DE JUANES (BDA. ODONNEL)",
+    "CALLE JUAN DE LA COSA (BDA. ODONNEL)",
+    "CALLE JUAN I DE PORTUGAL",
+    "CALLE JUAN RAMON JIMENEZ (V-JOVITA)",
+    "CALLE JUAN SEBASTIAN ELCANO (ODONNEL)",
+    "CALLE JUEGO DE BOLOS",
+    "CALLE LA LEGION",
+    "CALLE LAS HERAS",
+    "CALLE LEANDRO FDEZ MORATIN (V-JOVITA)",
+    "CALLE LINARES",
+    "CALLE LOPE DE RUEDA (BDA.VILLA JOVITA)",
+    "CALLE LOPE DE VEGA (BDA.VILLA JOVITA)",
+    "CALLE LOPERA MARTIN (BDA. ESPAÑA)",
+    "CALLE LOPEZ UTOR (BDA. SAN JOSE)",
+    "CALLE LOSADA ESPINOSA (BDA. SAN JOSE)",
+    "CALLE MACHADO",
+    "CALLE MAESTRA MARIA JAEN (BDA. PRINCIPE ALFONSO)",
+    "CALLE MANILVA (BDA. TERRONES)",
+    "CALLE MANUEL OLIVENCIA AMOR",
+    "CALLE MARCELO ROLDAN (BDA. SAN JOSE)",
+    "CALLE MARQUES DE LEDE (BDA. SAN JOSE)",
+    "CALLE MARQUES DE SANTA CRUZ",
+    "CALLE MARQUES DE SANTILLANA(V-JOVITA)",
+    "CALLE MARQUEZ CARRASCO (BDA.SAN JOSE)",
+    "CALLE MARTIN CALVENTE (BDA. SAN JOSE)",
+    "CALLE MARTIN MORENO (BDA. SAN JOSE)",
+    "CALLE MATEO ALVAREZ (BDA. SAN JOSE)",
+    "CALLE MENDEZ NUÑEZ",
+    "CALLE MENDOZA",
+    "CALLE MENENDEZ PELAYO (VILLA JOVITA)",
+    "CALLE MERCADILLO ERQUICIA",
+    "CALLE MERCADO DE ABASTOS CENTRAL",
+    "CALLE MERCADO DE ABASTOS SAN JOSE",
+    "CALLE MERCADO DE ABASTOS TERRONES",
+    "CALLE MERCADO DE ODONNEL",
+    "CALLE MERCADO REAL 90",
+    "CALLE MIGUEL DE LARA (BDA. SAN JOSE)",
+    "CALLE MILLAN ASTRAY",
+    "CALLE MINA",
+    "CALLE MIRALCAMPO (BDA. LA LIBERTAD)",
+    "CALLE MIRASOL (BDA. MIRAMAR)",
+    "CALLE MOLINO",
+    "CALLE MURILLO (BDA. ODONNEL)",
+    "CALLE NARVAEZ ALONSO (BDA. SAN JOSE)",
+    "CALLE NICARAGUA",
+    "CALLE NTRA SRA DEL MAYOR DOLOR",
+    "CALLE NUEVA (BDA. ESPAÑA)",
+    "CALLE OBISPO BARRAGAN",
+    "CALLE ODONNELL",
+    "CALLE PADRE FEIJOO (BDA.VILLA JOVITA)",
+    "CALLE PADROS CUZCO",
+    "CALLE PANAMA (BDA. SAN JOSE)",
+    "CALLE PARAMO SARRASI (BDA. SAN JOSE)",
+    "CALLE PEDRO DE ALVARADO (BDA.ODONNEL)",
+    "CALLE PEDRO DE MENESES",
+    "CALLE PEDRO DE VALDIVIA (BDA. ODONNEL)",
+    "CALLE PEDRO MORENO PERICO",
+    "CALLE PELIGROS",
+    "CALLE PEPE REMIGIO",
+    "CALLE PEREZ DEL CAMINO (BDA. ESPAÑA)",
+    "CALLE PEREZ GALDOS (BDA.VILLA JOVITA)",
+    "CALLE PEREZ SERRANO",
+    "CALLE PINAR (BDA. LA LIBERTAD)",
+    "CALLE PINO GORDO",
+    "CALLE POZO (BDA. LA LIBERTAD)",
+    "CALLE POZO RAYO",
+    "CALLE PUYUELO DOMENET (BDA. SAN JOSE)",
+    "CALLE QUEIPO DE LLANO",
+    "CALLE QUEMADERO",
+    "CALLE QUEVEDO (BDA. VILLA JOVITA)",
+    "CALLE RAFAEL OROZCO (PRINCIPE ALFONSO)",
+    "CALLE RALLO ROMERO (BDA. SAN JOSE)",
+    "CALLE RAMIREZ YUSTE (BDA. ESPAÑA)",
+    "CALLE RAMON DE CAMPOAMOR (V-JOVITA)",
+    "CALLE RAMON Y CAJAL",
+    "CALLE RAMPA DE ABASTOS",
+    "CALLE REAL",
+    "CALLE RODRIGUEZ BERLANGA (V-JOVITA)",
+    "CALLE ROMERO CORDOBA (BDA. SAN JOSE)",
+    "CALLE ROMERO DE TORRES (BDA. ODONNEL)",
+    "CALLE RUIZ ALVAREZ (BDA. SAN JOSE)",
+    "CALLE RUIZ DE ALARCON (VILLA JOVITA)",
+    "CALLE SALUD TEJERO",
+    "CALLE SAN DANIEL(BDA PRINCIPE ALFONSO)",
+    "CALLE SANTANDER",
+    "CALLE SARGENTO CORIAT",
+    "CALLE SARGENTO MENA",
+    "CALLE SEVILLA",
+    "CALLE SIMOA",
+    "CALLE SOLDADO VALLE ALMAZAN (SAN JOSE)",
+    "CALLE SOLIS",
+    "CALLE SOUSA RODRIGUEZ (BDA. SAN JOSE)",
+    "CALLE TEJAR DE INGENIEROS",
+    "CALLE TENIENTE ARRABAL",
+    "CALLE TENIENTE JOSE DEL OLMO",
+    "CALLE TENIENTE PACHECO",
+    "CALLE TETUAN",
+    "CALLE TIRSO DE MOLINA (VILLA JOVITA)",
+    "CALLE TOBOGAN",
+    "CALLE TRUJILLO GONZALEZ (BDA.SAN JOSE)",
+    "CALLE TTE.CORONEL GAUTIER (SAN JOSE)",
+    "CALLE VALDEAGUAS",
+    "CALLE VALDES LEAL (BDA. SAN JOSE)",
+    "CALLE VALLEJO BENITEZ (BDA. TERRONES)",
+    "CALLE VASCO NUÑEZ DE BALBOA",
+    "CALLE VASCO NUÑEZ DE BALBOA (ODONNEL)",
+    "CALLE VELARDE",
+    "CALLE VELAZQUEZ (BDA. ODONNEL)",
+    "CALLE VENEZUELA (BDA. SAN JOSE)",
+    "CALLE VEREDA",
+    "CALLE VICEDO MARTINEZ (BDA. SAN JOSE)",
+    "CALLE VIÑAS (BDA. ESPAÑA)",
+    "CALLE VIRGEN DE LA LUZ (BDA.SAN JOSE)",
+    "CALLE VIRGILIO OÑATE",
+    "CALLE ZORRILLA (BDA. VILLA JOVITA)",
+    "CALLE ZULOAGA (BDA. ODONNEL)",
+    "CALLE ZURBARAN (BDA. ODONNEL)",
+    "CARRETERA BENITEZ",
+    "CARRETERA DE BENZU",
+    "CARRETERA DE LA PUNTILLA",
+    "CARRETERA DE LOMA LARGA",
+    "CARRETERA DEL EMBALSE",
+    "CARRETERA DEL JARAL",
+    "CARRETERA DEL MONTE HACHO",
+    "CARRETERA DEL SERRALLO",
+    "CARRETERA FUERTE MENDIZABAL",
+    "CARRETERA GARCIA ALDAVE",
+    "CARRETERA MONTE INGENIEROS",
+    "CARRETERA SAN AMARO",
+    "CARRETERA SAN ANTONIO",
+    "CARRETERA SERVICIO AUTORIDAD PORTUARIA",
+    "CARRETERA SUBIDA DEL PANTANO",
+    "CARRETERA SUBIDA MONTE HACHO",
+    "CASAS DE CASTRO (12 DE DICIEMBRE)",
+    "COMPLEJO MANZANA DEL REVELLIN",
+    "CUESTA DEL MONTE HACHO",
+    "EDIFICIO EDIFICIO CEUTA CENTER",
+    "EDIFICIO EDIFICIO SAN LUIS",
+    "FALDA DEL MONTE HACHO",
+    "FINCA DE GUILLEN",
+    "FRONTERA TARAJAL",
+    "GLORIETA COMANDANTE AYUSO",
+    "GRUPO ALFAU",
+    "GRUPO GRUPO BERMUDO SORIANO (SAN JOSE)",
+    "GRUPO GRUPO GENERAL CARVAJAL (ODONNEL)",
+    "GRUPO GRUPO JOSE ZURRON",
+    "GRUPO GRUPO JUAN XXIII (BDA.ODONNEL)",
+    "GRUPO GRUPO LA LEALTAD (SAN AMARO)",
+    "GRUPO GRUPO SAN DANIEL (LA LIBERTAD)",
+    "GRUPO PRINCIPE FELIPE",
+    "LOMA COLMENAR",
+    "LOMA DEL PEZ",
+    "LOMA LARGA",
+    "LOMA MARGARITA",
+    "MUELLE ALFAU",
+    "MUELLE CAÑONERO DATO",
+    "MUELLE DE LA PUNTILLA",
+    "MUELLE DE LEVANTE",
+    "MUELLE DE PONIENTE",
+    "MUELLE DE PONIENTE (EXPLANADA)",
+    "MUELLE PUERTO DE CEUTA",
+    "PABELLONES A.P.C.",
+    "PABELLONES DE LAS HERAS",
+    "PARQUE DEL MEDITERRANEO",
+    "PASAJE AFRICA (BDA. ESPAÑA)",
+    "PASAJE ALCALDE SOTELO AZORIN",
+    "PASAJE ALHAMBRA",
+    "PASAJE ANAYA (BDA. SAN JOSE)",
+    "PASAJE BENTOLILA (VILLA JOVITA)",
+    "PASAJE DE LA SALUD",
+    "PASAJE DE LAS HERAS",
+    "PASAJE DIAMANTE",
+    "PASAJE EDUARDO GALLARDO",
+    "PASAJE GUERRERO (VILLA JOVITA)",
+    "PASAJE LAS BALSAS",
+    "PASAJE MALAGA (BDA. ESPAÑA)",
+    "PASAJE MATRES",
+    "PASAJE MINA",
+    "PASAJE PEDROSA (BDA. SAN JOSE)",
+    "PASAJE PERLA (BDA. ESPAÑA)",
+    "PASAJE RECREO",
+    "PASAJE RECREO ALTO",
+    "PASAJE RECREO BAJO",
+    "PASAJE RECREO CENTRAL",
+    "PASAJE ROMERO",
+    "PASAJE RUIZ MEDINA",
+    "PASAJE TRUJILLO (VILLA JOVITA)",
+    "PASAJE VISTA ALEGRE",
+    "PASEO ALCALDE SANCHEZ PRADOS",
+    "PASEO DE COLON",
+    "PASEO DE LA MARINA ESPAÑOLA",
+    "PASEO DE LAS PALMERAS",
+    "PASEO REVELLIN",
+    "PATIO CASTILLO",
+    "PATIO PARAMO",
+    "PLAYA DE BENITEZ",
+    "PLAYA DE CALAMOCARRO",
+    "PLAYA DE LA RIBERA",
+    "PLAYA DEL CHORRILLO",
+    "PLAZA BERMUDO SORIANO",
+    "PLAZA DE AFRICA",
+    "PLAZA DE AZCARATE",
+    "PLAZA DE ESPAÑA",
+    "PLAZA DE LA CONSTITUCION",
+    "PLAZA DE LOS REYES",
+    "PLAZA DE MAESTRANZA",
+    "PLAZA NICARAGUA (BDA. SAN JOSE)",
+    "PLAZA PADRE MUÑOZ DE ARENILLAS",
+    "PLAZA RAFAEL GIBERT",
+    "PLAZA TENIENTE RUIZ",
+    "POBLADO LEGIONARIO",
+    "POBLADO REGULARES (BDA.ROSALES)",
+    "POBLADO SANIDAD (BDA. SAN JOSE)",
+    "POLIGONO AVENIDA DE AFRICA",
+    "POLIGONO INDUST. EL TARAJAL I",
+    "POLIGONO INDUST. EL TARAJAL II",
+    "POLIGONO INDUSTRIAL ALBORAN",
+    "POLIGONO INDUSTRIAL LA CHIMENEA",
+    "POLIGONO SECTOR PLG 1 - MARITIMO TER",
+    "PUEBLO MARINERO",
+    "PUEBLO SAN ANTONIO",
+    "PUENTE DEL QUEMADERO",
+    "PUENTE DEL VALLE",
+    "PUERTO DE PESCADORES",
+    "PUERTO DEPORTIVO",
+    "PUERTO RICO (BDA. TERRONES)",
+    "RECINTO SUR",
+    "SECTOR ALCALDE J. VICTORI GOÑALONS",
+    "SECTOR AVENIDA DE MADRID",
+    "SECTOR LOMA MARGARITA",
+    "SECTOR POBLADO LEGIONARIO",
+    "SECTOR RECINTO SUR",
+    "SECTOR SARGENTO MENA",
+    "TORRE DEL TARAJAL",
+    "URBANIZACIÓN MIRAMAR",
+    "URBANIZACIÓN MONTE HACHO",
+    "URBANIZACIÓN VALLE DEL HACHO"
+  ],
+  "demarcations": [
+    {
+      "username": "alvaro",
+      "street_name": "CALLE ALCALDE JOSE VICTORI GOÑALONS"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE ALFAU"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE ALGECIRAS"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE AMARGURA"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE BEATRIZ DE SILVA"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE CAMOENS"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE CERVANTES"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE CORREA"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE DAOIZ"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE DELGADO SERRANO"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE DUARTE"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE ECHEGARAY"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE ESPINO"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE FUENTE CABALLO"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE GENERAL SERRANO ORIVE"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE GOMEZ MARCELO"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE GONZALEZ DE LA VEGA"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE INDEPENDENCIA"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE INGENIEROS"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE JAUDENES"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE LINARES"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE MANUEL OLIVENCIA AMOR"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE MARQUES DE SANTA CRUZ"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE MERCADO DE ABASTOS CENTRAL"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE OBISPO BARRAGAN"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE ODONNELL"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE PEPE REMIGIO"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE QUEIPO DE LLANO"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE SANTANDER"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE SARGENTO CORIAT"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE TENIENTE JOSE DEL OLMO"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "CALLE VELARDE"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "COMPLEJO MANZANA DEL REVELLIN"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "EDIFICIO EDIFICIO CEUTA CENTER"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "GRUPO ALFAU"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PARQUE DEL MEDITERRANEO"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PASAJE EDUARDO GALLARDO"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PASAJE LAS BALSAS"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PASEO ALCALDE SANCHEZ PRADOS"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PASEO DE COLON"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PASEO DE LA MARINA ESPAÑOLA"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PASEO DE LAS PALMERAS"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PASEO REVELLIN"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PATIO PARAMO"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PLAZA DE AFRICA"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PLAZA DE ESPAÑA"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PLAZA DE LA CONSTITUCION"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PLAZA DE LOS REYES"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PLAZA RAFAEL GIBERT"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PLAZA TENIENTE RUIZ"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "PUEBLO MARINERO"
+    },
+    {
+      "username": "alvaro",
+      "street_name": "SECTOR ALCALDE J. VICTORI GOÑALONS"
+    },
+    {
+      "username": "angela",
+      "street_name": "BARRIO DE LA SALUD"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE ALCALDE CLEMENTE CALVO PECINO"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE ALMIRANTE LOBO"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE ALVAREZ"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE ANTONIA CESPEDES GALLEGO"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE BRULL"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE CANALEJAS"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE DUEÑAS"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE ESTRELLA"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE IBIZA"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE ISIDORO MARTINEZ"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE JUAN I DE PORTUGAL"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE JUEGO DE BOLOS"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE MACHADO"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE MERCADO REAL 90"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE MOLINO"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE NTRA SRA DEL MAYOR DOLOR"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE PELIGROS"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE RAMON Y CAJAL"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE RAMPA DE ABASTOS"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE REAL"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE SALUD TEJERO"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE SEVILLA"
+    },
+    {
+      "username": "angela",
+      "street_name": "CALLE TETUAN"
+    },
+    {
+      "username": "angela",
+      "street_name": "PASAJE ALHAMBRA"
+    },
+    {
+      "username": "angela",
+      "street_name": "PASAJE DE LA SALUD"
+    },
+    {
+      "username": "angela",
+      "street_name": "PASAJE DE LAS HERAS"
+    },
+    {
+      "username": "angela",
+      "street_name": "PASAJE DIAMANTE"
+    },
+    {
+      "username": "angela",
+      "street_name": "PASAJE MATRES"
+    },
+    {
+      "username": "angela",
+      "street_name": "PASAJE RECREO"
+    },
+    {
+      "username": "angela",
+      "street_name": "PASAJE RECREO ALTO"
+    },
+    {
+      "username": "angela",
+      "street_name": "PASAJE RECREO BAJO"
+    },
+    {
+      "username": "angela",
+      "street_name": "PASAJE RECREO CENTRAL"
+    },
+    {
+      "username": "angela",
+      "street_name": "PASAJE VISTA ALEGRE"
+    },
+    {
+      "username": "angela",
+      "street_name": "PATIO CASTILLO"
+    },
+    {
+      "username": "angela",
+      "street_name": "PLAZA DE AZCARATE"
+    },
+    {
+      "username": "angela",
+      "street_name": "PLAZA DE MAESTRANZA"
+    },
+    {
+      "username": "angela",
+      "street_name": "RECINTO SUR"
+    },
+    {
+      "username": "angela",
+      "street_name": "SECTOR RECINTO SUR"
+    },
+    {
+      "username": "antonio",
+      "street_name": "ARROYO CAÑAVERAL"
+    },
+    {
+      "username": "antonio",
+      "street_name": "AVENIDA ARGENTINA (SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "AVENIDA ARGENTINA (VILLA AURORA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "AVENIDA MARTINEZ CATENA"
+    },
+    {
+      "username": "antonio",
+      "street_name": "AVENIDA MIGUEL ARRUDA"
+    },
+    {
+      "username": "antonio",
+      "street_name": "AVENIDA REGULARES"
+    },
+    {
+      "username": "antonio",
+      "street_name": "AVENIDA REYES CATOLICOS"
+    },
+    {
+      "username": "antonio",
+      "street_name": "BARRIADA ALMADRABA"
+    },
+    {
+      "username": "antonio",
+      "street_name": "BARRIADA BENITEZ"
+    },
+    {
+      "username": "antonio",
+      "street_name": "BARRIADA BENZU"
+    },
+    {
+      "username": "antonio",
+      "street_name": "BARRIADA DOCE DE DICIEMBRE"
+    },
+    {
+      "username": "antonio",
+      "street_name": "BARRIADA LA LEALTAD (SAN AMARO)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "BARRIADA MIRAMAR"
+    },
+    {
+      "username": "antonio",
+      "street_name": "BARRIADA POSTIGO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "BARRIADA SAN AMARO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "BARRIADA SARCHAL"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE ALCALA DEL VALLE"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE ALFEREZ DE LA RUBIA (SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE ALMERIA (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE ALTO DE LAS HERAS"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE ANDALUCIA (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE BARO ALEGRET (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE BEN ALI (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE BENTOLILA (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE BERMUDO SORIANO (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE BLOND MESA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE BOLIVIA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE BUENDIA RUIZ (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CACHINERO REINA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CADIZ (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CAPITAN NOREÑA (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CASTILLO ARTIEL (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CASTILLO HIDALGO (BDA.SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CESPED (BDA. MIRAMAR)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CHICA BERNAL (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CHILE (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CINCO HERMANOS LAHULET"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CIUDAD REAL (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CIVICO MURCIANO (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CMTE.RUBIA PACHECO (SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE COLOMBIA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE COLONIA ROMEU (BDA. ALMADRABA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CORDOBA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE CORTADURA DEL VALLE"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE DOCTORA SORAYA"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE ESCUELAS PRACTICAS"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE FAJARDO MARTINEZ (BDA.SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE FERNANDEZ AMADOR (BDA.SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE FERRERO VISO (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE FLORIA ORDOÑEZ (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE FRANCISCO LERIA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE GARCIA BENITEZ (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE GARCIA MORATO (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE GRANADA (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE GUERRERO SANCHEZ (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE HUELVA (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE JAEN (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE JOSE SANTOS VILELA (SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE LAS HERAS"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE LOPERA MARTIN (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE LOPEZ UTOR (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE LOSADA ESPINOSA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE MARCELO ROLDAN (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE MARQUES DE LEDE (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE MARQUEZ CARRASCO (BDA.SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE MARTIN CALVENTE (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE MARTIN MORENO (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE MATEO ALVAREZ (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE MERCADO DE ABASTOS SAN JOSE"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE MIGUEL DE LARA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE MIRASOL (BDA. MIRAMAR)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE NARVAEZ ALONSO (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE NICARAGUA"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE NUEVA (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE PANAMA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE PARAMO SARRASI (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE PEREZ DEL CAMINO (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE PINO GORDO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE POZO RAYO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE PUYUELO DOMENET (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE RALLO ROMERO (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE RAMIREZ YUSTE (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE ROMERO CORDOBA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE RUIZ ALVAREZ (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE SOLDADO VALLE ALMAZAN (SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE SOUSA RODRIGUEZ (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE TEJAR DE INGENIEROS"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE TOBOGAN"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE TRUJILLO GONZALEZ (BDA.SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE TTE.CORONEL GAUTIER (SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE VALDEAGUAS"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE VALDES LEAL (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE VENEZUELA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE VEREDA"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE VICEDO MARTINEZ (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE VIÑAS (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CALLE VIRGEN DE LA LUZ (BDA.SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CARRETERA BENITEZ"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CARRETERA DE BENZU"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CARRETERA DE LOMA LARGA"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CARRETERA DEL EMBALSE"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CARRETERA DEL JARAL"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CARRETERA DEL MONTE HACHO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CARRETERA GARCIA ALDAVE"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CARRETERA MONTE INGENIEROS"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CARRETERA SAN AMARO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CARRETERA SAN ANTONIO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CARRETERA SUBIDA DEL PANTANO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CARRETERA SUBIDA MONTE HACHO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CASAS DE CASTRO (12 DE DICIEMBRE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "CUESTA DEL MONTE HACHO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "FALDA DEL MONTE HACHO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "FINCA DE GUILLEN"
+    },
+    {
+      "username": "antonio",
+      "street_name": "GRUPO GRUPO BERMUDO SORIANO (SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "GRUPO GRUPO LA LEALTAD (SAN AMARO)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "LOMA COLMENAR"
+    },
+    {
+      "username": "antonio",
+      "street_name": "LOMA LARGA"
+    },
+    {
+      "username": "antonio",
+      "street_name": "LOMA MARGARITA"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PABELLONES DE LAS HERAS"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PASAJE AFRICA (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PASAJE ANAYA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PASAJE MALAGA (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PASAJE PEDROSA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PASAJE PERLA (BDA. ESPAÑA)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PASAJE RUIZ MEDINA"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PLAYA DE BENITEZ"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PLAYA DE CALAMOCARRO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PLAYA DE LA RIBERA"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PLAYA DEL CHORRILLO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PLAZA BERMUDO SORIANO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PLAZA NICARAGUA (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "POBLADO SANIDAD (BDA. SAN JOSE)"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PUEBLO SAN ANTONIO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "PUENTE DEL VALLE"
+    },
+    {
+      "username": "antonio",
+      "street_name": "SECTOR LOMA MARGARITA"
+    },
+    {
+      "username": "antonio",
+      "street_name": "URBANIZACIÓN VALLE DEL HACHO"
+    },
+    {
+      "username": "antonio",
+      "street_name": "URBANIZACIÓN MIRAMAR"
+    },
+    {
+      "username": "antonio",
+      "street_name": "URBANIZACIÓN MONTE HACHO"
+    },
+    {
+      "username": "javier",
+      "street_name": "BARRIADA ERQUICIA"
+    },
+    {
+      "username": "javier",
+      "street_name": "BARRIADA JUAN CARLOS I"
+    },
+    {
+      "username": "javier",
+      "street_name": "BARRIADA TERRONES"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE ALFONSO VIII (BDA. TERRONES)"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE APOSTOL SANTIAGO (BDA.TERRONES)"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE AYMAT GONZALEZ (BDA. TERRONES)"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE CONVOY DE LA VICTORIA (TERRONES)"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE EL CID CAMPEADOR (BDA.TERRONES)"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE ESTEPONA (BDA. TERRONES)"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE FELIPE II (BDA. TERRONES)"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE FERNANDO EL SANTO (BDA.TERRONES)"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE FUENTE TERRONES"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE JUAN DE AUSTRIA (BDA. TERRONES)"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE MANILVA (BDA. TERRONES)"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE MERCADILLO ERQUICIA"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE MERCADO DE ABASTOS TERRONES"
+    },
+    {
+      "username": "javier",
+      "street_name": "CALLE VALLEJO BENITEZ (BDA. TERRONES)"
+    },
+    {
+      "username": "javier",
+      "street_name": "PUERTO RICO (BDA. TERRONES)"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE AGUSTINA DE ARAGON"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE ALCALDE FRUCTUOSO MIAJA SANCHEZ"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE ANTIOCO"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE CIUDAD TRUJILLO"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE CONRADO ALVAREZ"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE FERNANDEZ"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE GALEA"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE GARCIA"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE GENERAL ARANDA"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE GONZALEZ BESADA"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE ISABEL CABRAL"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE LA LEGION"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE MENDEZ NUÑEZ"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE MENDOZA"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE MILLAN ASTRAY"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE MINA"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE PEDRO DE MENESES"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE SARGENTO MENA"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE SIMOA"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE SOLIS"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE TENIENTE ARRABAL"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE TENIENTE PACHECO"
+    },
+    {
+      "username": "maria",
+      "street_name": "CALLE VIRGILIO OÑATE"
+    },
+    {
+      "username": "maria",
+      "street_name": "EDIFICIO EDIFICIO SAN LUIS"
+    },
+    {
+      "username": "maria",
+      "street_name": "PASAJE ALCALDE SOTELO AZORIN"
+    },
+    {
+      "username": "maria",
+      "street_name": "PASAJE MINA"
+    },
+    {
+      "username": "maria",
+      "street_name": "PASAJE ROMERO"
+    },
+    {
+      "username": "maria",
+      "street_name": "PLAZA PADRE MUÑOZ DE ARENILLAS"
+    },
+    {
+      "username": "maria",
+      "street_name": "SECTOR SARGENTO MENA"
+    },
+    {
+      "username": "miguel",
+      "street_name": "AVENIDA DE LISBOA (LA LIBERTAD)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "AVENIDA NUESTRA SEÑORA DE OTERO"
+    },
+    {
+      "username": "miguel",
+      "street_name": "AVENIDA TTE. GENERAL MUSLERA"
+    },
+    {
+      "username": "miguel",
+      "street_name": "BARRIADA LA LIBERTAD"
+    },
+    {
+      "username": "miguel",
+      "street_name": "BARRIADA MANZANERA"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE A (BDA. LA LIBERTAD)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE ALTA (BDA. LA LIBERTAD)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE AZUL (BDA. LA LIBERTAD)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE B (BDA. LA LIBERTAD)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE CALDERON DE LA BARCA (V-JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE CIUDAD DE ACICATENA"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE COLONIA WEIL (BDA.VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE GENARO LUCAS (BDA.VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE GONGORA (BDA. VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE JACINTO BENAVENTE (VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE JOSE Mª DE PEREDA (VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE JUAN RAMON JIMENEZ (V-JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE LEANDRO FDEZ MORATIN (V-JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE LOPE DE RUEDA (BDA.VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE LOPE DE VEGA (BDA.VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE MARQUES DE SANTILLANA(V-JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE MENENDEZ PELAYO (VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE MIRALCAMPO (BDA. LA LIBERTAD)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE PADRE FEIJOO (BDA.VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE PEREZ GALDOS (BDA.VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE PINAR (BDA. LA LIBERTAD)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE POZO (BDA. LA LIBERTAD)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE QUEVEDO (BDA. VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE RAMON DE CAMPOAMOR (V-JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE RODRIGUEZ BERLANGA (V-JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE RUIZ DE ALARCON (VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE TIRSO DE MOLINA (VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "CALLE ZORRILLA (BDA. VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "GRUPO GRUPO JOSE ZURRON"
+    },
+    {
+      "username": "miguel",
+      "street_name": "GRUPO GRUPO SAN DANIEL (LA LIBERTAD)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "LOMA DEL PEZ"
+    },
+    {
+      "username": "miguel",
+      "street_name": "PASAJE BENTOLILA (VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "PASAJE GUERRERO (VILLA JOVITA)"
+    },
+    {
+      "username": "miguel",
+      "street_name": "PASAJE TRUJILLO (VILLA JOVITA)"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "ARROYO DE LAS BOMBAS"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "BARRIADA LOS ROSALES"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "BARRIADA PRINCIPE ALFONSO"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "BARRIADA TARAJAL"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CALLE AGRUPACION CENTRAL(PRINCIPE ALFONSO)"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CALLE AGRUPACION ESTE (PRINCIPE ALFONSO)"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CALLE AGRUPACION FUERTE(PRINCIPE ALFONSO)"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CALLE AGRUPACION NORTE (PRINCIPE ALFONSO)"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CALLE AGRUPACION SUR(BDA PRINCIPE ALFONSO)"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CALLE ALBERGUE AYUNTAMIENTO"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CALLE ARCOS QUEBRADOS"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CALLE CAPITAN CLAUDIO VAZQUEZ"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CALLE MAESTRA MARIA JAEN (BDA. PRINCIPE ALFONSO)"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CALLE QUEMADERO"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CALLE RAFAEL OROZCO (PRINCIPE ALFONSO)"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CALLE SAN DANIEL(BDA PRINCIPE ALFONSO)"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CARRETERA DEL SERRALLO"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "CARRETERA FUERTE MENDIZABAL"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "FRONTERA TARAJAL"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "GRUPO PRINCIPE FELIPE"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "POBLADO LEGIONARIO"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "POBLADO REGULARES (BDA.ROSALES)"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "POLIGONO INDUST. EL TARAJAL I"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "POLIGONO INDUST. EL TARAJAL II"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "POLIGONO INDUSTRIAL ALBORAN"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "POLIGONO INDUSTRIAL LA CHIMENEA"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "PUENTE DEL QUEMADERO"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "SECTOR POBLADO LEGIONARIO"
+    },
+    {
+      "username": "mohamed",
+      "street_name": "TORRE DEL TARAJAL"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE FRANCISCO PIZARRO (BDA ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE FRANCISCO RIBALTA (BDA.ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE GOYA (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE HERMANOS PINZON (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE HERNAN CORTES (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE HERNANDO DE SOTO (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE JOAQUIN SOROLLA (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE JUAN DE JUANES (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE JUAN DE LA COSA (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE JUAN SEBASTIAN ELCANO (ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "AVENIDA DOCTOR MARAÑON (ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE MERCADO DE ODONNEL"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE PEDRO DE ALVARADO (BDA.ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE PEDRO DE VALDIVIA (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE ROMERO DE TORRES (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE VASCO NUÑEZ DE BALBOA"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE VASCO NUÑEZ DE BALBOA (ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE VELAZQUEZ (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE ZULOAGA (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE ZURBARAN (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "GRUPO GRUPO GENERAL CARVAJAL (ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "BARRIADA ODONNEL"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "GRUPO GRUPO JUAN XXIII (BDA.ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE MURILLO (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE ALONSO DE OJEDA (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE CLAUDIO COELLO (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE EL GRECO (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE ESPAÑOLETO (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE FLECHA BERMUDEZ (BDA. ODONNEL)"
+    },
+    {
+      "username": "mohamed2",
+      "street_name": "CALLE FRANCISCO DE ORELLANA (ODONNEL)"
+    },
+    {
+      "username": "raul",
+      "street_name": "AVENIDA COMPAÑIA DE MAR"
+    },
+    {
+      "username": "raul",
+      "street_name": "AVENIDA DE AFRICA"
+    },
+    {
+      "username": "raul",
+      "street_name": "AVENIDA DE BARCELONA"
+    },
+    {
+      "username": "raul",
+      "street_name": "AVENIDA DE ESPAÑA"
+    },
+    {
+      "username": "raul",
+      "street_name": "AVENIDA DE MADRID"
+    },
+    {
+      "username": "raul",
+      "street_name": "AVENIDA EJERCITO ESPAÑOL"
+    },
+    {
+      "username": "raul",
+      "street_name": "AVENIDA JUAN DE BORBON"
+    },
+    {
+      "username": "raul",
+      "street_name": "AVENIDA SAN FCO. JAVIER (ANGULO)"
+    },
+    {
+      "username": "raul",
+      "street_name": "AVENIDA SAN JUAN DE DIOS"
+    },
+    {
+      "username": "raul",
+      "street_name": "BARRIADA SARDINERO"
+    },
+    {
+      "username": "raul",
+      "street_name": "CALLE ADORATRICES (BDA. SARDINERO)"
+    },
+    {
+      "username": "raul",
+      "street_name": "CALLE ALFEREZ BAYTON"
+    },
+    {
+      "username": "raul",
+      "street_name": "CALLE ALFEREZ PROVISIONAL"
+    },
+    {
+      "username": "raul",
+      "street_name": "CALLE ANDRES DEL RIO ABAURREA"
+    },
+    {
+      "username": "raul",
+      "street_name": "CALLE DOCTOR FLEMING"
+    },
+    {
+      "username": "raul",
+      "street_name": "CALLE ENRIQUE EL NAVEGANTE"
+    },
+    {
+      "username": "raul",
+      "street_name": "CALLE ESTACION MARITIMA"
+    },
+    {
+      "username": "raul",
+      "street_name": "CALLE FLORENTINO GOMEZ MACEDO"
+    },
+    {
+      "username": "raul",
+      "street_name": "CALLE PADROS CUZCO"
+    },
+    {
+      "username": "raul",
+      "street_name": "CALLE PEDRO MORENO PERICO"
+    },
+    {
+      "username": "raul",
+      "street_name": "CALLE PEREZ SERRANO"
+    },
+    {
+      "username": "raul",
+      "street_name": "CARRETERA DE LA PUNTILLA"
+    },
+    {
+      "username": "raul",
+      "street_name": "CARRETERA SERVICIO AUTORIDAD PORTUARIA"
+    },
+    {
+      "username": "raul",
+      "street_name": "GLORIETA COMANDANTE AYUSO"
+    },
+    {
+      "username": "raul",
+      "street_name": "MUELLE DE LA PUNTILLA"
+    },
+    {
+      "username": "raul",
+      "street_name": "MUELLE ALFAU"
+    },
+    {
+      "username": "raul",
+      "street_name": "MUELLE CAÑONERO DATO"
+    },
+    {
+      "username": "raul",
+      "street_name": "MUELLE DE LEVANTE"
+    },
+    {
+      "username": "raul",
+      "street_name": "MUELLE DE PONIENTE"
+    },
+    {
+      "username": "raul",
+      "street_name": "MUELLE DE PONIENTE (EXPLANADA)"
+    },
+    {
+      "username": "raul",
+      "street_name": "MUELLE PUERTO DE CEUTA"
+    },
+    {
+      "username": "raul",
+      "street_name": "PABELLONES A.P.C."
+    },
+    {
+      "username": "raul",
+      "street_name": "POLIGONO AVENIDA DE AFRICA"
+    },
+    {
+      "username": "raul",
+      "street_name": "POLIGONO SECTOR PLG 1 - MARITIMO TER"
+    },
+    {
+      "username": "raul",
+      "street_name": "PUERTO DE PESCADORES"
+    },
+    {
+      "username": "raul",
+      "street_name": "PUERTO DEPORTIVO"
+    },
+    {
+      "username": "raul",
+      "street_name": "SECTOR AVENIDA DE MADRID"
+    }
+  ]
+}
