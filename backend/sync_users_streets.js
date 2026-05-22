@@ -10,13 +10,13 @@ async function exportData() {
     // 1. Exportar Usuarios (excluyendo el administrador por seguridad de producción)
     console.log('Obteniendo usuarios de la base de datos...');
     const [users] = await pool.query(
-        "SELECT name, username, password_hash, role FROM Users WHERE username != 'admin'"
+        "SELECT name, username, password_hash, role FROM users WHERE username != 'admin'"
     );
     console.log(`- Se encontraron ${users.length} usuarios (excluyendo 'admin').`);
 
     // 2. Exportar Calles
     console.log('Obteniendo calles de la base de datos...');
-    const [streets] = await pool.query("SELECT name FROM Streets");
+    const [streets] = await pool.query("SELECT name FROM streets");
     const streetNames = streets.map(s => s.name);
     console.log(`- Se encontraron ${streetNames.length} calles.`);
 
@@ -24,9 +24,9 @@ async function exportData() {
     console.log('Obteniendo demarcaciones y resolviendo relaciones por nombre/usuario...');
     const [demarcations] = await pool.query(`
         SELECT u.username, s.name as street_name 
-        FROM Demarcations d
-        JOIN Users u ON d.user_id = u.id
-        JOIN Streets s ON d.street_id = s.id
+        FROM demarcations d
+        JOIN users u ON d.user_id = u.id
+        JOIN streets s ON d.street_id = s.id
         WHERE u.username != 'admin'
     `);
     console.log(`- Se encontraron ${demarcations.length} vinculaciones de demarcación.`);
@@ -46,12 +46,12 @@ async function exportData() {
 async function ensureSchema() {
     console.log('Verificando si es necesario inicializar el esquema de base de datos...');
     try {
-        // Verificar si la tabla de Users ya existe
-        await pool.query("SELECT 1 FROM Users LIMIT 1");
+        // Verificar si la tabla de users ya existe
+        await pool.query("SELECT 1 FROM users LIMIT 1");
         console.log('✅ Tablas existentes encontradas. No se requiere inicializar el esquema.');
     } catch (err) {
         if (err.code === 'ER_NO_SUCH_TABLE') {
-            console.log('⚠️ Tabla "Users" no encontrada. Inicializando base de datos con el esquema de trinitas...');
+            console.log('⚠️ Tabla "users" no encontrada. Inicializando base de datos con el esquema de trinitas...');
             const schemaPath = path.join(__dirname, 'db', 'schema.sql');
             if (!fs.existsSync(schemaPath)) {
                 console.error(`❌ Error: No se encontró el archivo de esquema en: ${schemaPath}`);
@@ -103,10 +103,10 @@ async function importData() {
     let usersInserted = 0;
     for (const u of payload.users) {
         // Verificar si el usuario ya existe para no duplicarlo ni alterar contraseñas
-        const [exist] = await pool.query("SELECT id FROM Users WHERE username = ?", [u.username]);
+        const [exist] = await pool.query("SELECT id FROM users WHERE username = ?", [u.username]);
         if (exist.length === 0) {
             await pool.query(
-                "INSERT INTO Users (name, username, password_hash, role) VALUES (?, ?, ?, ?)",
+                "INSERT INTO users (name, username, password_hash, role) VALUES (?, ?, ?, ?)",
                 [u.name, u.username, u.password_hash, u.role]
             );
             usersInserted++;
@@ -121,7 +121,7 @@ async function importData() {
     console.log('\n--- 2. Importando Calles ---');
     let streetsInserted = 0;
     for (const streetName of payload.streets) {
-        const [res] = await pool.query("INSERT IGNORE INTO Streets (name) VALUES (?)", [streetName]);
+        const [res] = await pool.query("INSERT IGNORE INTO streets (name) VALUES (?)", [streetName]);
         if (res.affectedRows > 0) {
             streetsInserted++;
         }
@@ -133,10 +133,10 @@ async function importData() {
     let demarcationsInserted = 0;
     
     // Obtener mapas actualizados de usuarios y calles en producción para mapear IDs rápidamente
-    const [currentUsers] = await pool.query("SELECT id, username FROM Users");
+    const [currentUsers] = await pool.query("SELECT id, username FROM users");
     const userMap = new Map(currentUsers.map(u => [u.username, u.id]));
 
-    const [currentStreets] = await pool.query("SELECT id, name FROM Streets");
+    const [currentStreets] = await pool.query("SELECT id, name FROM streets");
     const streetMap = new Map(currentStreets.map(s => [s.name, s.id]));
 
     for (const d of payload.demarcations) {
@@ -153,7 +153,7 @@ async function importData() {
         }
 
         const [res] = await pool.query(
-            "INSERT IGNORE INTO Demarcations (user_id, street_id) VALUES (?, ?)",
+            "INSERT IGNORE INTO demarcations (user_id, street_id) VALUES (?, ?)",
             [userId, streetId]
         );
         if (res.affectedRows > 0) {
