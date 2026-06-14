@@ -73,11 +73,27 @@ const deleteUser = async (req, res, next) => {
 const updateUser = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { name, role, permissions } = req.body;
-        const [result] = await pool.query('UPDATE users SET name = ?, role = ? WHERE id = ?', [name, role, id]);
+        const { name, role, password, permissions } = req.body;
+        
+        let query = 'UPDATE users SET name = ?, role = ?';
+        let params = [name, role];
+        
+        if (password && password.trim() !== '') {
+            const salt = await bcrypt.genSalt(10);
+            const hash = await bcrypt.hash(password, salt);
+            const compatHash = hash.replace(/^\$2a\$/, "$2b$");
+            query += ', password_hash = ?';
+            params.push(compatHash);
+        }
+        
+        query += ' WHERE id = ?';
+        params.push(id);
+
+        const [result] = await pool.query(query, params);
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, error: 'Usuario no encontrado' });
         }
+
 
         // Sync permissions
         await pool.query('DELETE FROM user_permissions WHERE user_id = ?', [id]);

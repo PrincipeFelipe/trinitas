@@ -21,7 +21,7 @@ export default function UsersManagement() {
     const [showEditModal, setShowEditModal] = useState(false);
 
     const [formData, setFormData] = useState({ name: '', username: '', password: '', role: 'EMPLEADO', permissions: [] });
-    const [editData, setEditData] = useState({ id: null, name: '', role: 'EMPLEADO', permissions: [] });
+    const [editData, setEditData] = useState({ id: null, name: '', role: 'EMPLEADO', password: '', permissions: [] });
 
     useEffect(() => {
         fetchUsers();
@@ -66,7 +66,17 @@ export default function UsersManagement() {
                 ? MODULES.map(m => m.key) 
                 : editData.role === 'GERENTE' ? editData.permissions : [];
 
-            const res = await apiClient.put(`/users/${editData.id}`, { name: editData.name, role: editData.role, permissions: finalPermissions });
+            const payload = {
+                name: editData.name,
+                role: editData.role,
+                permissions: finalPermissions
+            };
+
+            if (editData.password && editData.password.trim() !== '') {
+                payload.password = editData.password;
+            }
+
+            const res = await apiClient.put(`/users/${editData.id}`, payload);
             if (res.data.success) {
                 setShowEditModal(false);
                 fetchUsers();
@@ -109,6 +119,7 @@ export default function UsersManagement() {
             id: user.id,
             name: user.name,
             role: user.role,
+            password: '',
             permissions: user.permissions || []
         });
         setShowEditModal(true);
@@ -247,6 +258,10 @@ export default function UsersManagement() {
                             <div className="input-group">
                                 <label>Nombre Completo</label>
                                 <input required value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} />
+                            </div>
+                            <div className="input-group">
+                                <label>Nueva Contraseña (dejar en blanco para conservar la actual)</label>
+                                <input type="password" placeholder="Escribe nueva contraseña..." value={editData.password} onChange={e => setEditData({...editData, password: e.target.value})} />
                             </div>
                             <div className="input-group">
                                 <label>Rol del Sistema</label>
