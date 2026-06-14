@@ -35,7 +35,13 @@ Ejecuta el script para migrar la columna `role` de los usuarios y crear la tabla
 node migrate_roles_permissions.js
 ```
 
-### 5. Instalación de Dependencias
+### 5. Migración de Base de Datos (Añadir columna para archivar)
+Ejecuta el script para añadir la columna `is_archived` a la tabla `notifications`:
+```bash
+node add_is_archived_column.js
+```
+
+### 6. Instalación de Dependencias
 Asegúrate de tener todas las dependencias actualizadas:
 ```bash
 # En la carpeta backend
@@ -45,18 +51,19 @@ npm install
 npm install
 ```
 
-### 6. Compilación del Frontend
+### 7. Compilación del Frontend
 Genera el nuevo bundle del frontend para producción:
 ```bash
 # En la carpeta frontend
 npm run build
 ```
 
-### 7. Reiniciar Servicios
+### 8. Reiniciar Servicios
 Reinicia el backend para que cargue el nuevo middleware de seguridad y los nuevos controladores:
 ```bash
 # Si usas PM2
 pm2 restart all
+
 
 # O reinicia el proceso de Node que tengas configurado
 ```
