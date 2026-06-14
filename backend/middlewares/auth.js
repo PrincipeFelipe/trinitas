@@ -28,7 +28,7 @@ const requireAdmin = (req, res, next) => {
     }
 };
 
-const requirePermission = (moduleName) => {
+const requirePermission = (moduleNameOrNames) => {
     return (req, res, next) => {
         if (!req.user) {
             return res.status(401).json({ success: false, error: 'Unauthorized' });
@@ -36,11 +36,14 @@ const requirePermission = (moduleName) => {
         if (req.user.role === 'ADMINISTRADOR' || req.user.role === 'ADMIN') {
             return next();
         }
-        if (req.user.permissions && req.user.permissions.includes(moduleName)) {
+        
+        const required = Array.isArray(moduleNameOrNames) ? moduleNameOrNames : [moduleNameOrNames];
+        if (req.user.permissions && required.some(p => req.user.permissions.includes(p))) {
             return next();
         }
-        res.status(403).json({ success: false, error: `Forbidden: requires ${moduleName} permission` });
+        res.status(403).json({ success: false, error: `Forbidden: requires one of permissions: ${required.join(', ')}` });
     };
 };
+
 
 module.exports = { verifyToken, requireAdmin, requirePermission };
