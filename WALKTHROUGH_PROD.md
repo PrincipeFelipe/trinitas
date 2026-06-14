@@ -1,80 +1,141 @@
 # Guía de Implementación en Producción - Trinitas
 
-Esta guía detalla los pasos necesarios para desplegar los últimos cambios, incluyendo la unificación global de IDs y las mejoras en exportación PDF.
+Esta guía detalla todos los pasos necesarios para desplegar los últimos cambios en el servidor de producción. Incluye cambios en la **base de datos**, el **backend** y el **frontend**.
 
-## ⚠️ IMPORTANTE: Backup previo
-Antes de realizar cualquier cambio en producción, realiza un backup de la base de datos actual:
+---
+
+## ⚠️ PASO 0 — Backup previo (OBLIGATORIO)
+
+Antes de tocar nada en producción, haz un backup completo de la base de datos:
+
 ```bash
-mysqldump -u [usuario] -p [base_de_datos] > backup_antes_migracion.sql
+mysqldump -u [usuario] -p [nombre_base_de_datos] > backup_$(date +%Y%m%d_%H%M%S).sql
 ```
 
-## Pasos para el Despliegue
+---
 
-### 1. Actualizar Código
-En el servidor de producción, sitúate en la carpeta del proyecto y descarga los cambios:
+## PASO 1 — Actualizar el código
+
+Conéctate al servidor y descarga los últimos cambios desde GitHub:
+
 ```bash
+cd /ruta/al/proyecto
 git pull origin main
 ```
 
-### 2. Preparar Base de Datos (Añadir columna empresa)
-Es posible que falte la columna `company` en algunas tablas. Ejecuta este script primero:
+---
+
+## PASO 2 — Migraciones de Base de Datos
+
+> ⚠️ **Ejecuta los scripts en este orden exacto.** Cada uno es idempotente (si la columna/tabla ya existe no fallará), pero el orden importa.
+
+Desde la carpeta `backend/`:
+
+```bash
+cd backend
+```
+
+### 2a. Añadir columna `company` a `notifications` (si no existe)
 ```bash
 node migrate_company.js
 ```
 
-### 3. Migración de Base de Datos (Unificar IDs)
-Ahora ejecuta el script para hacer que los IDs de notificación sean únicos a nivel global:
+### 2b. Unificar IDs de notificaciones a nivel global
 ```bash
 node make_id_unique.js
 ```
-*Este script limpiará duplicados y ajustará las claves primarias.*
+*Limpia duplicados y garantiza unicidad global del campo `id_notificacion`.*
 
-### 4. Migración de Base de Datos (Roles y Permisos)
-Ejecuta el script para migrar la columna `role` de los usuarios y crear la tabla `user_permissions`:
+### 2c. Sistema de Roles y Permisos
 ```bash
 node migrate_roles_permissions.js
 ```
+*Crea la tabla `user_permissions` y migra la columna `role` en `users` (valores: `ADMINISTRADOR`, `GERENTE`, `EMPLEADO`).*
 
-### 5. Migración de Base de Datos (Añadir columna para archivar)
-Ejecuta el script para añadir la columna `is_archived` a la tabla `notifications`:
+### 2d. Columna de archivado en notificaciones
 ```bash
 node add_is_archived_column.js
 ```
+*Añade la columna `is_archived TINYINT(1) DEFAULT 0` a la tabla `notifications`.*
 
-### 6. Instalación de Dependencias
-Asegúrate de tener todas las dependencias actualizadas:
+---
+
+## PASO 3 — Instalar dependencias
+
 ```bash
-# En la carpeta backend
+# Backend
+cd backend
 npm install
 
-# En la carpeta frontend
+# Frontend
+cd ../frontend
 npm install
 ```
 
-### 7. Compilación del Frontend
-Genera el nuevo bundle del frontend para producción:
+---
+
+## PASO 4 — Compilar el Frontend
+
 ```bash
-# En la carpeta frontend
+cd frontend
 npm run build
 ```
 
-### 8. Reiniciar Servicios
-Reinicia el backend para que cargue el nuevo middleware de seguridad y los nuevos controladores:
+El resultado se generará en `frontend/dist/`. Asegúrate de que tu servidor web (Nginx/Apache) sirve este directorio para las rutas del frontend.
+
+---
+
+## PASO 5 — Reiniciar el Backend
+
 ```bash
-# Si usas PM2
+# Si usas PM2:
 pm2 restart all
+pm2 save
 
-
-# O reinicia el proceso de Node que tengas configurado
+# Si usas systemd:
+sudo systemctl restart trinitas-backend
 ```
 
+---
 
-## Resumen de cambios implementados
-- **ID Único Global**: Ya no hay conflictos entre empresas con el mismo ID.
-- **Exportación Masiva PDF**: Nuevo botón en el listado que genera un PDF con resumen + acuses individuales.
-- **Filtro "Gestionados"**: Opción para ocultar notificaciones pendientes en el listado.
-- **Seguridad PDF**: Los enlaces a PDFs ahora incluyen el token de autenticación para evitar errores de acceso.
-- **Correcciones UI**: Autocompletado del nombre del receptor y botón de limpieza en la app del repartidor.
+## PASO 6 — Verificación post-despliegue
+
+Comprueba que todo funciona correctamente:
+
+- [ ] Login con usuario **Administrador** → accede a todos los módulos
+- [ ] Login con usuario **Gerente** → accede solo a los módulos permitidos
+- [ ] Login con usuario **Empleado** → accede solo a notificaciones (si tiene permiso)
+- [ ] En `/notifications`: la tabla se muestra correctamente en escritorio
+- [ ] Exportar PDF filtrando por fecha → solo se archivan las notificaciones del filtro
+- [ ] El checkbox "Mostrar archivadas" muestra **únicamente** las archivadas
+- [ ] Gestión de usuarios: se puede cambiar contraseña desde el modal de edición
+
+---
+
+## Resumen de todos los cambios implementados
+
+### 🔐 Sistema de Roles y Permisos (RBAC)
+- Tres roles: **Administrador**, **Gerente**, **Empleado**
+- Tabla `user_permissions` para asignar acceso módulo a módulo
+- Middleware `requirePermission` en todas las rutas sensibles
+- El menú lateral se adapta dinámicamente a los permisos del usuario
+
+### 🔑 Gestión de Contraseñas
+- El modal de edición de usuario permite cambiar la contraseña opcionalmente
+
+### 📋 Listado de Notificaciones
+- **Vista escritorio**: tabla compacta en lugar de tarjetas
+- **Vista móvil**: tarjetas (sin cambios)
+- **Filtro "Mostrar archivadas"**: muestra **solo** las archivadas (no mezcla con activas)
+- **Exportación PDF**: corregido bug por el que se archivaban todas las notificaciones en lugar de solo las filtradas exportadas
+- **Archivado al exportar**: flujo con SweetAlert — pregunta si archivar antes de generar el PDF
+
+### 🗄️ Base de Datos
+- Nueva columna `is_archived` en `notifications`
+- Nueva tabla `user_permissions`
+- Columna `role` en `users` con valores `ADMINISTRADOR` / `GERENTE` / `EMPLEADO`
+
+
 
 ---
 
