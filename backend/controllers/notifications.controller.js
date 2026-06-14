@@ -250,6 +250,76 @@ function parseStreetFromAddress(fullAddress, sortedStreets, streetMap) {
 }
 
 // ==========================================
+// File Parsing Helpers
+// ==========================================
+
+function parseFileLines(lines) {
+    if (lines.length === 0) return [];
+    
+    const firstLine = lines[0].trim();
+    const isCsv = firstLine.toUpperCase().startsWith('ID;') || firstLine.toUpperCase().includes('DIRECCION');
+    
+    const parsed = [];
+    const startIndex = isCsv ? 1 : 0;
+    
+    for (let i = startIndex; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        let id, recipient_name, full_address;
+        
+        if (isCsv) {
+            const parts = line.split(';');
+            if (parts.length < 3) continue;
+            id = parts[0].trim();
+            recipient_name = parts[1].trim();
+            full_address = parts.slice(2).join(';').trim();
+        } else {
+            if (line.length < 45) continue;
+            id = line.substring(0, 5).trim();
+            recipient_name = line.substring(5, 45).trim();
+            full_address = line.substring(45).trim();
+        }
+        
+        if (id && recipient_name && full_address) {
+            parsed.push({ id, recipient_name, full_address });
+        }
+    }
+    return parsed;
+}
+
+function parseNotificationId(idStr, fallbackCompany) {
+    let company = fallbackCompany;
+    let createdAt = null;
+    
+    if (idStr && idStr.includes('_')) {
+        const parts = idStr.split('_');
+        if (parts.length >= 2) {
+            const compChar = parts[0];
+            if (compChar === '1') {
+                company = 'ENERGIA_CEUTA';
+            } else if (compChar === '5') {
+                company = 'ALUMBRADO_CEUTA';
+            }
+            
+            const datePart = parts[1];
+            if (/^\d{8}$/.test(datePart)) {
+                const yyyy = datePart.substring(0, 4);
+                const mm = datePart.substring(4, 6);
+                const dd = datePart.substring(6, 8);
+                const mInt = parseInt(mm, 10);
+                const dInt = parseInt(dd, 10);
+                if (mInt >= 1 && mInt <= 12 && dInt >= 1 && dInt <= 31) {
+                    createdAt = `${yyyy}-${mm}-${dd} 12:00:00`;
+                }
+            }
+        }
+    }
+    
+    return { company, createdAt };
+}
+
+// ==========================================
 // Controllers
 // ==========================================
 
@@ -271,6 +341,9 @@ const uploadNotifications = async (req, res, next) => {
         }
         const lines = fileContent.split(/\r?\n/).filter(line => line.trim().length > 0);
 
+        // Parse lines based on format (CSV or Fixed-width)
+        const parsedRows = parseFileLines(lines);
+
         // Load all streets and demarcations
         const [streets] = await pool.query('SELECT * FROM streets');
         const [demarcations] = await pool.query('SELECT * FROM demarcations');
@@ -291,14 +364,8 @@ const uploadNotifications = async (req, res, next) => {
         let unassigned = [];
         const newStreetsFound = new Set();
 
-        for (const line of lines) {
-            if (line.length < 45) continue;
-
-            const id = line.substring(0, 5).trim();
-            const recipient_name = line.substring(5, 45).trim();
-            const full_address = line.substring(45).trim();
-            
-            if (!id || !recipient_name || !full_address) continue;
+        for (const row of parsedRows) {
+            const { id, recipient_name, full_address } = row;
             processed++;
 
             const match = parseStreetFromAddress(full_address, sortedStreets, streetMap);
@@ -313,10 +380,20 @@ const uploadNotifications = async (req, res, next) => {
                 newStreetsFound.add(match.extractedStreet);
             }
 
-            const [insertResult] = await pool.query(`
-                INSERT INTO notifications (id_notificacion, recipient_name, full_address, street_id, assigned_user_id, status, company)
-                VALUES (?, ?, ?, ?, ?, 'PENDIENTE', ?)
-            `, [id, recipient_name, full_address, street_id, assigned_user_id, company]);
+            const { company: resolvedCompany, createdAt } = parseNotificationId(id, company);
+
+            let insertResult;
+            if (createdAt) {
+                [insertResult] = await pool.query(`
+                    INSERT INTO notifications (id_notificacion, recipient_name, full_address, street_id, assigned_user_id, status, company, created_at)
+                    VALUES (?, ?, ?, ?, ?, 'PENDIENTE', ?, ?)
+                `, [id, recipient_name, full_address, street_id, assigned_user_id, resolvedCompany, createdAt]);
+            } else {
+                [insertResult] = await pool.query(`
+                    INSERT INTO notifications (id_notificacion, recipient_name, full_address, street_id, assigned_user_id, status, company)
+                    VALUES (?, ?, ?, ?, ?, 'PENDIENTE', ?)
+                `, [id, recipient_name, full_address, street_id, assigned_user_id, resolvedCompany]);
+            }
 
             const dbId = insertResult.insertId;
 
@@ -329,7 +406,8 @@ const uploadNotifications = async (req, res, next) => {
                     full_address, 
                     street_id, 
                     assigned_user_id, 
-                    extracted_street: match.extractedStreet || null 
+                    extracted_street: match.extractedStreet || null,
+                    company: resolvedCompany
                 });
             }
         }
@@ -360,6 +438,8 @@ const extractStreetsOnly = async (req, res, next) => {
         }
         const lines = fileContent.split(/\r?\n/).filter(line => line.trim().length > 0);
 
+        const parsedRows = parseFileLines(lines);
+
         const [streets] = await pool.query('SELECT * FROM streets');
         const sortedStreets = [...streets].sort((a, b) => b.name.length - a.name.length);
         const streetMap = new Map();
@@ -370,9 +450,8 @@ const extractStreetsOnly = async (req, res, next) => {
         
         const newStreetsFound = new Set();
 
-        for (const line of lines) {
-            if (line.length < 45) continue;
-            const full_address = line.substring(45).trim();
+        for (const row of parsedRows) {
+            const { full_address } = row;
             const match = parseStreetFromAddress(full_address, sortedStreets, streetMap);
             
             if (match.extractedStreet && !match.matched) {
@@ -609,60 +688,96 @@ const generatePdf = async (req, res, next) => {
         const doc = new PDFDocument({ margin: 50 });
         
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="acuse_${id}.pdf"`);
+        res.setHeader('Content-Disposition', `attachment; filename="${notification.id_notificacion}.pdf"`);
         doc.pipe(res);
 
         // Build the PDF content
         const logoPath = path.join(__dirname, '../assets/trinitas_logo.jpg');
+        const startY = doc.y;
+        
+        // Logo on the top left
         if (fs.existsSync(logoPath)) {
-            doc.image(logoPath, { fit: [150, 75], align: 'center' });
-            doc.moveDown(1);
+            doc.image(logoPath, 50, startY, { fit: [150, 75] });
         }
-        doc.fontSize(18).text('ACUSE DE RECIBO / NOTIFICACIÓN', { align: 'center' });
-        doc.moveDown(1);
         
-        const companyInfo = COMPANIES[notification.company];
-        if (companyInfo) {
-            doc.fontSize(11).font('Helvetica-Bold').text('Empresa Emisora: ', { continued: true }).font('Helvetica').text(companyInfo.name);
-            doc.font('Helvetica-Bold').text('CIF: ', { continued: true }).font('Helvetica').text(companyInfo.cif);
-            doc.moveDown(1.5);
-        } else {
-            doc.moveDown(1);
+        // Trinitas details on the top right
+        doc.fontSize(8).font('Helvetica').fillColor('#444444');
+        const companyDetails = [
+            'Calle Alcalde Manuel Olivencia, 5',
+            '51001 Ceuta',
+            'TEL: 956 512 861 · 956 516 598',
+            'FAX: 956 512 125',
+            'serviciosintegrales@trinitas.es'
+        ].join('\n');
+        
+        doc.text(companyDetails, 262, startY + 10, {
+            width: 300,
+            align: 'right',
+            lineGap: 2
+        });
+        
+        doc.fillColor('#000000');
+        const companyData = COMPANIES[notification.company] || { name: 'Trinitas', cif: '' };
+        doc.fontSize(16).font('Helvetica-Bold').text(companyData.name, 50, startY + 90, {
+            width: doc.page.width - 100,
+            align: 'center'
+        });
+        if (companyData.cif) {
+            doc.fontSize(10).font('Helvetica').text(`CIF: ${companyData.cif}`, {
+                width: doc.page.width - 100,
+                align: 'center'
+            });
         }
-
-        doc.fontSize(12).font('Helvetica-Bold').text('ID Notificación: ', { continued: true }).font('Helvetica').text(notification.id_notificacion);
-        doc.font('Helvetica-Bold').text('Destinatario: ', { continued: true }).font('Helvetica').text(notification.recipient_name);
-        doc.font('Helvetica-Bold').text('Dirección: ', { continued: true }).font('Helvetica').text(notification.full_address);
-        doc.font('Helvetica-Bold').text('Repartidor: ', { continued: true }).font('Helvetica').text(notification.assigned_user_name || 'Sin asignar');
-        doc.font('Helvetica-Bold').text('Estado: ', { continued: true }).font('Helvetica').text(notification.status);
-        
+        doc.moveDown(0.5);
+        doc.fontSize(18).font('Helvetica-Bold').text('ACUSE DE RECIBO', {
+            width: doc.page.width - 100,
+            align: 'center'
+        });
+        doc.moveDown();
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
         doc.moveDown(2);
-        doc.fontSize(14).font('Helvetica-Bold').text('Historial de Intentos');
+
+        // Notification Info
+        doc.fontSize(14).font('Helvetica-Bold').text('Datos de la Notificación', { align: 'left' });
+        doc.fontSize(12).font('Helvetica').text(`ID Notificación: ${notification.id_notificacion}`, { align: 'left' });
+        doc.text(`Destinatario: ${notification.recipient_name}`, { align: 'left' });
+        doc.text(`Dirección: ${notification.full_address}`, { align: 'left' });
+        doc.text(`Calle Asignada: ${notification.street_name || 'Ninguna'}`, { align: 'left' });
+        doc.text(`Estado Final: ${notification.status}`, { align: 'left' });
+        doc.moveDown(2);
+
+        // Attempts History
+        doc.fontSize(14).font('Helvetica-Bold').text('Historial de Intentos', { align: 'left' });
         doc.moveDown(1);
 
         if (attemptRows.length === 0) {
-            doc.fontSize(12).font('Helvetica').text('No hay intentos registrados.');
+            doc.fontSize(12).font('Helvetica').text('No hay intentos registrados.', { align: 'left' });
         } else {
             attemptRows.forEach(attempt => {
-                doc.fontSize(12).font('Helvetica-Bold').text(`Intento ${attempt.attempt_number} - ${attempt.status_result}`);
-                doc.font('Helvetica-Bold').text('Fecha/Hora: ', { continued: true }).font('Helvetica').text(new Date(attempt.timestamp).toLocaleString());
-                doc.font('Helvetica-Bold').text('Tramitado por: ', { continued: true }).font('Helvetica').text(attempt.delivered_by_name || 'N/A');
+                doc.fontSize(12).font('Helvetica-Bold').text(`Intento #${attempt.attempt_number} - ${attempt.status_result}`, { underline: true, align: 'left' });
+                doc.font('Helvetica').text(`Repartidor: ${attempt.delivered_by_name || 'Desconocido'}`, { align: 'left' });
+                doc.text(`Fecha Registrada: ${new Date(attempt.timestamp).toLocaleString()}`, { align: 'left' });
                 
+                if (attempt.notes) {
+                    doc.font('Helvetica-Oblique').text(`Observaciones: ${attempt.notes}`, { align: 'left' });
+                    doc.font('Helvetica');
+                }
+
                 if (attempt.status_result === 'ENTREGADA') {
-                    doc.font('Helvetica-Bold').text('Receptor: ', { continued: true }).font('Helvetica').text(attempt.receiver_name || '-');
-                    doc.font('Helvetica-Bold').text('DNI: ', { continued: true }).font('Helvetica').text(attempt.receiver_dni || '-');
-                    
+                    doc.text(`Receptor Oficial: ${attempt.receiver_name} (DNI: ${attempt.receiver_dni})`, { align: 'left' });
                     if (attempt.signature_base64) {
-                        doc.moveDown(1);
-                        doc.font('Helvetica-Bold').text('Firma:');
+                        doc.moveDown();
+                        doc.text('Firma Capturada:', { align: 'left' });
                         try {
                             const base64Data = attempt.signature_base64.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
                             const imgBuffer = Buffer.from(base64Data, 'base64');
                             doc.image(imgBuffer, { fit: [200, 100] });
                         } catch (err) {
-                            doc.font('Helvetica').text('(Error al cargar la imagen de la firma)');
+                            doc.font('Helvetica').text('(Error al cargar la imagen de la firma)', { align: 'left' });
                         }
                     }
+                } else {
+                    doc.text(`Motivo de Falla: ${attempt.status_result}`, { align: 'left' });
                 }
                 doc.moveDown(1.5);
             });
@@ -748,11 +863,37 @@ const generateBulkPdf = async (req, res, next) => {
             doc.moveTo(startX, y + 12).lineTo(800, y + 12).stroke();
         };
 
+        // Header (Logo + Trinitas Details)
+        const logoPath = path.join(__dirname, '../assets/trinitas_logo.jpg');
+        const headerStartY = doc.y;
+        
+        if (fs.existsSync(logoPath)) {
+            doc.image(logoPath, 40, headerStartY, { fit: [120, 60] });
+        }
+        
+        doc.fontSize(8).font('Helvetica').fillColor('#444444');
+        const companyDetails = [
+            'Calle Alcalde Manuel Olivencia, 5',
+            '51001 Ceuta',
+            'TEL: 956 512 861 · 956 516 598',
+            'FAX: 956 512 125',
+            'serviciosintegrales@trinitas.es'
+        ].join('\n');
+        
+        doc.text(companyDetails, 450, headerStartY + 5, {
+            width: 312,
+            align: 'right',
+            lineGap: 1
+        });
+        
+        doc.fillColor('#000000');
+        doc.y = headerStartY + 70;
+
         // --- PAGE 1: SUMMARY LIST ---
         doc.fontSize(18).font('Helvetica-Bold').text('RESUMEN DE NOTIFICACIONES', { align: 'center' });
-        doc.moveDown(1);
+        doc.moveDown(0.5);
         doc.fontSize(10).font('Helvetica').text(`Fecha de exportación: ${new Date().toLocaleString()}`, { align: 'right' });
-        doc.moveDown(1);
+        doc.moveDown(0.5);
 
         // Table Header
         const startX = 40;
@@ -832,56 +973,91 @@ const generateBulkPdf = async (req, res, next) => {
             doc.addPage({ layout: 'portrait', margin: 50 });
             
             const logoPath = path.join(__dirname, '../assets/trinitas_logo.jpg');
+            const startY = doc.y;
+            
+            // Logo on the top left
             if (fs.existsSync(logoPath)) {
-                doc.image(logoPath, { fit: [150, 75], align: 'center' });
-                doc.moveDown(1);
+                doc.image(logoPath, 50, startY, { fit: [150, 75] });
             }
             
-            doc.fontSize(18).font('Helvetica-Bold').text('ACUSE DE RECIBO / NOTIFICACIÓN', { align: 'center' });
-            doc.moveDown(1);
+            // Trinitas details on the top right
+            doc.fontSize(8).font('Helvetica').fillColor('#444444');
+            const companyDetails = [
+                'Calle Alcalde Manuel Olivencia, 5',
+                '51001 Ceuta',
+                'TEL: 956 512 861 · 956 516 598',
+                'FAX: 956 512 125',
+                'serviciosintegrales@trinitas.es'
+            ].join('\n');
             
-            const companyInfo = COMPANIES[notification.company];
-            if (companyInfo) {
-                doc.fontSize(11).font('Helvetica-Bold').text('Empresa Emisora: ', { continued: true }).font('Helvetica').text(companyInfo.name);
-                doc.font('Helvetica-Bold').text('CIF: ', { continued: true }).font('Helvetica').text(companyInfo.cif);
-                doc.moveDown(1.5);
-            } else {
-                doc.moveDown(1);
+            doc.text(companyDetails, 262, startY + 10, {
+                width: 300,
+                align: 'right',
+                lineGap: 2
+            });
+            
+            doc.fillColor('#000000');
+            const companyData = COMPANIES[notification.company] || { name: 'Trinitas', cif: '' };
+            doc.fontSize(16).font('Helvetica-Bold').text(companyData.name, 50, startY + 90, {
+                width: doc.page.width - 100,
+                align: 'center'
+            });
+            if (companyData.cif) {
+                doc.fontSize(10).font('Helvetica').text(`CIF: ${companyData.cif}`, {
+                    width: doc.page.width - 100,
+                    align: 'center'
+                });
             }
-
-            doc.fontSize(12).font('Helvetica-Bold').text('ID Notificación: ', { continued: true }).font('Helvetica').text(notification.id_notificacion);
-            doc.font('Helvetica-Bold').text('Destinatario: ', { continued: true }).font('Helvetica').text(notification.recipient_name);
-            doc.font('Helvetica-Bold').text('Dirección: ', { continued: true }).font('Helvetica').text(notification.full_address);
-            doc.font('Helvetica-Bold').text('Repartidor: ', { continued: true }).font('Helvetica').text(notification.assigned_user_name || 'Sin asignar');
-            doc.font('Helvetica-Bold').text('Estado: ', { continued: true }).font('Helvetica').text(notification.status);
-            
+            doc.moveDown(0.5);
+            doc.fontSize(18).font('Helvetica-Bold').text('ACUSE DE RECIBO', {
+                width: doc.page.width - 100,
+                align: 'center'
+            });
+            doc.moveDown();
+            doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
             doc.moveDown(2);
-            doc.fontSize(14).font('Helvetica-Bold').text('Historial de Intentos');
+
+            // Notification Info
+            doc.fontSize(14).font('Helvetica-Bold').text('Datos de la Notificación', { align: 'left' });
+            doc.fontSize(12).font('Helvetica').text(`ID Notificación: ${notification.id_notificacion}`, { align: 'left' });
+            doc.text(`Destinatario: ${notification.recipient_name}`, { align: 'left' });
+            doc.text(`Dirección: ${notification.full_address}`, { align: 'left' });
+            doc.text(`Calle Asignada: ${notification.street_name || 'Ninguna'}`, { align: 'left' });
+            doc.text(`Estado Final: ${notification.status}`, { align: 'left' });
+            doc.moveDown(2);
+
+            // Attempts History
+            doc.fontSize(14).font('Helvetica-Bold').text('Historial de Intentos', { align: 'left' });
             doc.moveDown(1);
 
             if (attempts.length === 0) {
-                doc.fontSize(12).font('Helvetica').text('No hay intentos registrados.');
+                doc.fontSize(12).font('Helvetica').text('No hay intentos registrados.', { align: 'left' });
             } else {
                 attempts.forEach(attempt => {
-                    doc.fontSize(12).font('Helvetica-Bold').text(`Intento ${attempt.attempt_number} - ${attempt.status_result}`);
-                    doc.font('Helvetica-Bold').text('Fecha/Hora: ', { continued: true }).font('Helvetica').text(new Date(attempt.timestamp).toLocaleString());
-                    doc.font('Helvetica-Bold').text('Tramitado por: ', { continued: true }).font('Helvetica').text(attempt.delivered_by_name || 'N/A');
+                    doc.fontSize(12).font('Helvetica-Bold').text(`Intento #${attempt.attempt_number} - ${attempt.status_result}`, { underline: true, align: 'left' });
+                    doc.font('Helvetica').text(`Repartidor: ${attempt.delivered_by_name || 'Desconocido'}`, { align: 'left' });
+                    doc.text(`Fecha Registrada: ${new Date(attempt.timestamp).toLocaleString()}`, { align: 'left' });
                     
+                    if (attempt.notes) {
+                        doc.font('Helvetica-Oblique').text(`Observaciones: ${attempt.notes}`, { align: 'left' });
+                        doc.font('Helvetica');
+                    }
+
                     if (attempt.status_result === 'ENTREGADA') {
-                        doc.font('Helvetica-Bold').text('Receptor: ', { continued: true }).font('Helvetica').text(attempt.receiver_name || '-');
-                        doc.font('Helvetica-Bold').text('DNI: ', { continued: true }).font('Helvetica').text(attempt.receiver_dni || '-');
-                        
+                        doc.text(`Receptor Oficial: ${attempt.receiver_name} (DNI: ${attempt.receiver_dni})`, { align: 'left' });
                         if (attempt.signature_base64) {
-                            doc.moveDown(1);
-                            doc.font('Helvetica-Bold').text('Firma:');
+                            doc.moveDown();
+                            doc.text('Firma Capturada:', { align: 'left' });
                             try {
                                 const base64Data = attempt.signature_base64.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
                                 const imgBuffer = Buffer.from(base64Data, 'base64');
                                 doc.image(imgBuffer, { fit: [200, 100] });
                             } catch (err) {
-                                doc.font('Helvetica').text('(Error al cargar la imagen de la firma)');
+                                doc.font('Helvetica').text('(Error al cargar la imagen de la firma)', { align: 'left' });
                             }
                         }
+                    } else {
+                        doc.text(`Motivo de Falla: ${attempt.status_result}`, { align: 'left' });
                     }
                     doc.moveDown(1.5);
                 });

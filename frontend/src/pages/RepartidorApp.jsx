@@ -3,6 +3,7 @@ import apiClient from '../api/client';
 import SignaturePad from 'signature_pad';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 export default function RepartidorApp() {
     const { user, logout } = useContext(AuthContext);
@@ -443,12 +444,22 @@ function DeliveryAction({ item, onBack }) {
         let signature_base64 = null;
         if (status_result === 'ENTREGADA') {
             if (!receiverName || !receiverDni) {
-                alert('Por favor rellena Nombre y DNI del receptor.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos incompletos',
+                    text: 'Por favor rellena Nombre y DNI del receptor.',
+                    confirmButtonColor: '#1a6fb5'
+                });
                 setSubmitting(false);
                 return;
             }
             if (!sigPadRef.current || sigPadRef.current.isEmpty()) {
-                alert('Por favor añade la firma del receptor.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Falta firma',
+                    text: 'Por favor añade la firma del receptor.',
+                    confirmButtonColor: '#1a6fb5'
+                });
                 setSubmitting(false);
                 return;
             }
@@ -464,11 +475,23 @@ function DeliveryAction({ item, onBack }) {
                 notes,
                 company: item.company
             });
-            alert('Operación registrada exitosamente');
-            onBack();
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: 'Operación registrada exitosamente',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                onBack();
+            });
         } catch (error) {
             console.error('Submission error', error);
-            alert(error.response?.data?.error || 'Error al guardar estado');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.response?.data?.error || 'Error al guardar estado',
+                confirmButtonColor: '#1a6fb5'
+            });
         } finally {
             setSubmitting(false);
         }

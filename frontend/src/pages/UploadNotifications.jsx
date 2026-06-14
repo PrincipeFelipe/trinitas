@@ -136,7 +136,7 @@ export default function UploadNotifications() {
                 .manual-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
                 
                 .notif-cards { display: flex; flex-direction: column; gap: 12px; }
-                .notif-card { background: #fff; border: 1px solid #e8e8e8; border-radius: 10px; padding: 16px; display: grid; grid-template-columns: 60px 1fr 1fr 1.5fr auto; gap: 12px; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.05); transition: box-shadow 0.2s; }
+                .notif-card { background: #fff; border: 1px solid #e8e8e8; border-radius: 10px; padding: 16px; display: grid; grid-template-columns: minmax(130px, 1.2fr) minmax(100px, 1fr) 1.5fr 1.5fr 2fr auto; gap: 12px; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.05); transition: box-shadow 0.2s; }
                 .notif-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.1); }
                 .notif-card .field-label { font-size: 0.7rem; text-transform: uppercase; color: #999; letter-spacing: 0.5px; margin-bottom: 2px; }
                 .notif-card .field-value { font-size: 0.85rem; color: #333; word-break: break-word; }
@@ -169,7 +169,7 @@ export default function UploadNotifications() {
             <div className="upload-container">
                 <header className="upload-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
                     {!results ? (
-                        <p style={{ margin: 0 }}>Seleccione la empresa emisora y arrastre el informe diario delimitado (ancho fijo).</p>
+                        <p style={{ margin: 0 }}>Seleccione la empresa emisora y arrastre el archivo CSV o TXT de notificaciones diarias.</p>
                     ) : (
                         <p style={{ margin: 0, fontWeight: 500, color: '#666' }}>
                             Resumen del archivo procesado para <strong style={{ color: '#333' }}>{company === 'ENERGIA_CEUTA' ? 'Energía Ceuta' : 'Alumbrado Ceuta'}</strong>
@@ -236,8 +236,8 @@ export default function UploadNotifications() {
                         onDrop={handleDrop}
                     >
                         <div className="dropzone-content">
-                            {file ? <p>Archivo listo: <strong>{file.name}</strong></p> : <p>Arrastre el archivo .txt aquí o haga clic en seleccionar.</p>}
-                            <input type="file" id="file" onChange={(e) => setFile(e.target.files[0])} hidden />
+                            {file ? <p>Archivo listo: <strong>{file.name}</strong></p> : <p>Arrastre el archivo .csv o .txt aquí o haga clic en seleccionar.</p>}
+                            <input type="file" id="file" accept=".csv,.txt" onChange={(e) => setFile(e.target.files[0])} hidden />
                             <label htmlFor="file" className="btn-secondary">Seleccionar Archivo</label>
                         </div>
                     </div>
@@ -339,6 +339,12 @@ function AssignmentCard({ item, streets, onAssign }) {
             <div>
                 <div className="field-label">ID</div>
                 <div className="field-value" style={{ fontWeight: 700 }}>{item.id_notificacion}</div>
+            </div>
+            <div>
+                <div className="field-label">Empresa</div>
+                <div className="field-value" style={{ fontWeight: 600, color: item.company === 'ENERGIA_CEUTA' ? '#1a6fb5' : '#e67e22' }}>
+                    {item.company === 'ENERGIA_CEUTA' ? 'Energía' : item.company === 'ALUMBRADO_CEUTA' ? 'Alumbrado' : item.company || '—'}
+                </div>
             </div>
             <div>
                 <div className="field-label">Destinatario</div>

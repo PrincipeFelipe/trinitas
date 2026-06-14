@@ -19,20 +19,31 @@ router.get('/history', verifyToken, async (req, res, next) => {
     }
 });
 
-router.get('/:id', verifyToken, (req, res) => {
-    const { id } = req.params;
-    const { company } = req.query;
+router.get('/:id', verifyToken, async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { company } = req.query;
 
-    if (!company) {
-        return res.status(400).json({ success: false, error: 'Missing company parameter' });
-    }
+        if (!company) {
+            return res.status(400).json({ success: false, error: 'Missing company parameter' });
+        }
 
-    const filePath = path.join(__dirname, '../../backend/uploads/receipts', `${id}-${company}.pdf`);
+        const [rows] = await pool.query('SELECT id_notificacion FROM notifications WHERE id = ? AND company = ?', [id, company]);
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Notificación no encontrada' });
+        }
+        
+        const id_notificacion = rows[0].id_notificacion;
+        const { generateReceiptPDF } = require('../utils/pdfGenerator');
+        const filePath = await generateReceiptPDF(id, company);
 
-    if (fs.existsSync(filePath)) {
-        res.sendFile(filePath);
-    } else {
-        res.status(404).json({ success: false, error: 'Acuse no encontrado o aún generándose' });
+        if (filePath && fs.existsSync(filePath)) {
+            res.download(filePath, `${id_notificacion}.pdf`);
+        } else {
+            res.status(404).json({ success: false, error: 'Acuse no encontrado o aún generándose' });
+        }
+    } catch (error) {
+        next(error);
     }
 });
 

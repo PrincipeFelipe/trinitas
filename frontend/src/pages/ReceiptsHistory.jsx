@@ -26,7 +26,7 @@ export default function ReceiptsHistory() {
         }
     };
 
-    const handleDownload = async (id, company) => {
+    const handleDownload = async (id, company, id_notificacion) => {
         try {
             // Using blob response type to handle PDF binary securely with Axios JWT
             const response = await apiClient.get(`/receipts/${id}?company=${company}`, { responseType: 'blob' });
@@ -35,7 +35,7 @@ export default function ReceiptsHistory() {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `${id}-${company}.pdf`);
+            link.setAttribute('download', `${id_notificacion}.pdf`);
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -85,7 +85,7 @@ export default function ReceiptsHistory() {
                                         </span>
                                     </td>
                                     <td>
-                                        <button className="btn-primary" style={{margin:0, width:'auto'}} onClick={() => handleDownload(item.id, item.company)}>
+                                        <button className="btn-primary" style={{margin:0, width:'auto'}} onClick={() => handleDownload(item.id, item.company, item.id_notificacion)}>
                                             ↓ PDF
                                         </button>
                                     </td>

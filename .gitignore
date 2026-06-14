@@ -23,3 +23,7 @@ Thumbs.db
 # Vite
 .vite/
 frontend/.vite/
+
+# Local uploads and working documents
+backend/uploads/
+Documentos de trabajo/
