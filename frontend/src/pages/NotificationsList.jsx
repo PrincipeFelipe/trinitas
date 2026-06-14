@@ -202,32 +202,49 @@ export default function NotificationsList() {
                 .summary-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
                 .summary-pill { background: #f8f9fa; border: 1px solid #e8e8e8; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; }
                 .summary-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
-                .summary-pill .count { font-weight: 700; }                .notif-list-cards { display: flex; flex-direction: column; gap: 16px; }
-                .notif-list-card { 
-                    background: #fff; 
-                    border: 1px solid #edf2f7; 
-                    border-radius: 16px; 
-                    padding: 20px 24px; 
-                    display: grid; 
-                    grid-template-columns: 80px 1fr 1.5fr 2fr 1.2fr 1.2fr 1fr; 
-                    gap: 24px; 
-                    align-items: center; 
+                .summary-pill .count { font-weight: 700; }
+
+                /* Desktop Table Styles */
+                .notif-table-container-desktop {
+                    width: 100%;
+                    overflow-x: auto;
+                    margin-bottom: 20px;
+                    border: 1px solid #edf2f7;
+                    border-radius: 12px;
                     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-                    border-left: 6px solid transparent;
-                    position: relative;
+                    background: #fff;
                 }
-                .notif-list-card:hover { 
-                    transform: translateY(-4px); 
-                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                    border-color: #e2e8f0; 
+                .notif-table-desktop {
+                    width: 100%;
+                    border-collapse: collapse;
+                    text-align: left;
                 }
-                .notif-list-card.border-safe { border-left-color: #48bb78; background: #f0fff4; }
-                .notif-list-card.border-warning { border-left-color: #ed8936; background: #fffaf0; }
-                .notif-list-card.border-expired { border-left-color: #e53e3e; background: #fff5f5; }
-                
+                .notif-table-desktop th {
+                    background: #f7fafc;
+                    color: #4a5568;
+                    text-transform: uppercase;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    letter-spacing: 0.05em;
+                    padding: 12px 16px;
+                    border-bottom: 2px solid #edf2f7;
+                }
+                .notif-table-desktop td {
+                    padding: 10px 16px;
+                    font-size: 0.85rem;
+                    color: #2d3748;
+                    border-bottom: 1px solid #edf2f7;
+                    vertical-align: middle;
+                }
+                .notif-table-desktop tr:hover {
+                    background: #fcfcfc;
+                }
+                .notif-table-desktop tr.border-safe { border-left: 4px solid #48bb78; }
+                .notif-table-desktop tr.border-warning { border-left: 4px solid #ed8936; }
+                .notif-table-desktop tr.border-expired { border-left: 4px solid #e53e3e; }
+
+                /* Expiration Badges */
                 .expiration-badge { 
-                    margin-top: 5px; 
                     display: inline-flex; 
                     align-items: center;
                     padding: 2px 8px; 
@@ -241,27 +258,7 @@ export default function NotificationsList() {
                 .expiration-badge.warning { background: #feebc8; color: #7b341e; }
                 .expiration-badge.expired { background: #fed7d7; color: #822727; }
 
-                .notif-list-card .col { display: flex; flex-direction: column; gap: 6px; }
-                .status-button-wrapper { display: flex; align-items: center; gap: 16px; margin-top: 2px; }
-                .status-info { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 120px; }
-                
-                .notif-list-card .fl { 
-                    font-size: 0.65rem; 
-                    color: #718096; 
-                    text-transform: uppercase; 
-                    letter-spacing: 0.05em; 
-                    font-weight: 700; 
-                }
-                .notif-list-card .fv { 
-                    font-size: 0.95rem; 
-                    color: #1a202c; 
-                    font-weight: 600; 
-                    word-break: break-word; 
-                    line-height: 1.4; 
-                }
-                .notif-list-card .fv.id-text { font-family: 'JetBrains Mono', monospace; letter-spacing: -0.02em; }
-                .notif-list-card .fv.muted { color: #a0aec0; font-style: italic; font-weight: 400; }
-
+                /* Status Badges */
                 .status-badge { 
                     display: inline-flex;
                     align-items: center;
@@ -273,16 +270,16 @@ export default function NotificationsList() {
                     color: #fff; 
                     text-align: center;
                     width: 100%;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
                     text-transform: uppercase;
                     letter-spacing: 0.025em;
                 }
 
                 .reassign-select { 
                     width: 100%; 
-                    padding: 8px 12px; 
+                    padding: 6px 10px; 
                     border: 1px solid #e2e8f0; 
-                    border-radius: 10px; 
+                    border-radius: 8px; 
                     font-size: 0.85rem; 
                     background: #f7fafc; 
                     cursor: pointer; 
@@ -302,24 +299,55 @@ export default function NotificationsList() {
                 .btn-reassign-all { background: #3182ce; color: #fff; border: none; padding: 12px 24px; border-radius: 12px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(49, 130, 206, 0.3); }
                 .btn-reassign-all:hover { background: #2b6cb0; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(49, 130, 206, 0.4); }
 
-                .btn-view { 
+                .btn-view, .btn-pdf { 
                     background: #f1f5f9; 
                     color: #4a5568; 
                     border: 1px solid #e2e8f0; 
-                    width: 36px; 
-                    height: 36px; 
-                    border-radius: 8px; 
+                    width: 32px; 
+                    height: 32px; 
+                    border-radius: 6px; 
                     cursor: pointer; 
                     transition: all 0.2s; 
                     display: flex; 
                     align-items: center; 
                     justify-content: center; 
-                    font-size: 1rem;
+                    font-size: 0.95rem;
                     user-select: none;
                 }
                 .btn-view:hover { background: #3182ce; color: #fff; border-color: #3182ce; }
-                .btn-view:active { transform: translateY(1px); }
+                .btn-pdf:hover { background: #10b981; color: #fff; border-color: #10b981; }
                 .btn-view:disabled { background: #f7fafc; color: #cbd5e0; border-color: #edf2f7; cursor: not-allowed; }
+
+                /* Cards for Mobile */
+                .notif-list-cards { display: none; flex-direction: column; gap: 16px; }
+                .notif-list-card { 
+                    background: #fff; 
+                    border: 1px solid #edf2f7; 
+                    border-radius: 16px; 
+                    padding: 20px; 
+                    display: grid; 
+                    grid-template-columns: 1fr; 
+                    gap: 14px; 
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+                    border-left: 6px solid transparent;
+                }
+                .notif-list-card.border-safe { border-left-color: #48bb78; }
+                .notif-list-card.border-warning { border-left-color: #ed8936; }
+                .notif-list-card.border-expired { border-left-color: #e53e3e; }
+                .notif-list-card .col { display: flex; flex-direction: column; gap: 4px; }
+                .notif-list-card .fl { font-size: 0.65rem; color: #718096; text-transform: uppercase; font-weight: 700; }
+                .notif-list-card .fv { font-size: 0.9rem; color: #1a202c; font-weight: 600; }
+                .notif-list-card .fv.id-text { font-family: 'JetBrains Mono', monospace; }
+                .notif-list-card .fv.muted { color: #a0aec0; font-style: italic; font-weight: 400; }
+                .notif-list-card .card-actions-row-mobile {
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: center;
+                    gap: 8px;
+                    margin-top: 8px;
+                    padding-top: 12px;
+                    border-top: 1px solid #edf2f7;
+                }
 
                 /* Modal Styles */
                 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 16px; backdrop-filter: blur(8px); }
@@ -350,41 +378,13 @@ export default function NotificationsList() {
                 .attempt-date { color: #64748b; font-size: 0.8rem; font-weight: 500; }
                 .signature-img { width: 100%; max-width: 400px; height: auto; border: 2px solid #e2e8f0; border-radius: 12px; background: #fff; margin-top: 12px; display: block; }
 
-                    .notif-list-card .card-actions-row-mobile { display: none; }
-                }
-
-                @media (max-width: 1200px) {
-                    .notif-list-card { grid-template-columns: 80px 1fr 1.2fr 1.5fr 1fr 1fr 120px; }
-                    .notif-list-card .hide-tablet { display: none; }
-                }
+                /* Responsive Visibility Toggles */
+                .notif-table-container-desktop { display: block; }
+                .notif-list-cards { display: none; }
 
                 @media (max-width: 768px) {
-                    .notif-list-card { 
-                        grid-template-columns: 1fr; 
-                        gap: 16px; 
-                        padding: 20px; 
-                    }
-                    .notif-list-card > div.col { 
-                        display: grid; 
-                        grid-template-columns: 100px 1fr; 
-                        align-items: center; 
-                        gap: 12px;
-                    }
-                    .notif-list-card .status-button-wrapper { display: block; }
-                    .notif-list-card .status-info { min-width: auto; }
-                    .notif-list-card .btn-view.desktop-only { display: none; }
-                    
-                    .notif-list-card .hide-tablet { display: grid; }
-                    
-                    .notif-list-card .card-actions-row-mobile {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        margin-top: 8px;
-                        padding-top: 16px;
-                        border-top: 1px solid #edf2f7;
-                    }
-                    .status-badge { width: auto; padding: 6px 16px; }
+                    .notif-table-container-desktop { display: none; }
+                    .notif-list-cards { display: flex; }
                     .notif-list-filters .filter-group { min-width: 100%; }
                     .toolbar { flex-direction: column; align-items: stretch; }
                     .btn-reassign-all { width: 100%; justify-content: center; }
@@ -522,6 +522,110 @@ export default function NotificationsList() {
                         }}>
                             📄 Exportar Listado PDF
                         </button>
+                    </div>
+
+                    {/* Table for Desktop */}
+                    <div className="notif-table-container-desktop">
+                        <table className="notif-table-desktop">
+                            <thead>
+                                <tr>
+                                    <th style={{ width: '120px' }}>ID / Fecha</th>
+                                    <th style={{ width: '150px' }}>Empresa</th>
+                                    <th>Destinatario</th>
+                                    <th>Dirección</th>
+                                    <th>Calle Asignada</th>
+                                    <th style={{ width: '180px' }}>Repartidor</th>
+                                    <th style={{ width: '160px' }}>Estado</th>
+                                    <th style={{ width: '90px' }}>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filtered.map(n => {
+                                    const isPendingVal = ['PENDIENTE', '1ER_INTENTO'].includes(n.status);
+                                    let daysRemaining = null;
+                                    if (isPendingVal && n.created_at) {
+                                        const daysElapsed = Math.floor((new Date() - new Date(n.created_at)) / (1000 * 60 * 60 * 24));
+                                        daysRemaining = 8 - daysElapsed;
+                                    }
+
+                                    let urgency = 'safe';
+                                    if (daysRemaining !== null) {
+                                        if (daysRemaining <= 3) urgency = 'expired';
+                                        else if (daysRemaining < 6) urgency = 'warning';
+                                    }
+
+                                    let rowClass = "";
+                                    if (isPendingVal) rowClass = `border-${urgency}`;
+
+                                    return (
+                                        <tr key={`${n.id}-${n.company}`} className={rowClass}>
+                                            <td>
+                                                <div className="fv id-text" style={{ fontWeight: 600 }}>{n.id_notificacion}</div>
+                                                <div style={{ fontSize: '0.72rem', color: '#718096', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                    <span>📅</span>
+                                                    <span>{n.created_at ? new Date(n.created_at).toLocaleDateString('es-ES') : '-'}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div style={{ fontSize: '0.8rem', color: '#1a6fb5', fontWeight: 600 }}>
+                                                    {n.company ? COMPANY_SHORT_NAMES[n.company] : '-'}
+                                                </div>
+                                            </td>
+                                            <td style={{ fontWeight: 500 }}>{n.recipient_name}</td>
+                                            <td style={{ fontSize: '0.8rem', color: '#4a5568' }}>{n.full_address}</td>
+                                            <td style={{ fontSize: '0.8rem', color: n.street_name ? '#2d3748' : '#a0aec0', fontStyle: n.street_name ? 'normal' : 'italic' }}>
+                                                {n.street_name || 'No vinculada'}
+                                            </td>
+                                            <td>
+                                                <select
+                                                    className="reassign-select"
+                                                    value={n.assigned_user_id || ''}
+                                                    onChange={e => handleReassign(n.id, e.target.value, n.company)}
+                                                    onClick={e => e.stopPropagation()}
+                                                    style={{ padding: '6px 10px', fontSize: '0.85rem' }}
+                                                >
+                                                    <option value="">— Sin asignar —</option>
+                                                    {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                    <span className="status-badge" style={{ background: statusLabels[n.status]?.color || '#999', padding: '4px 8px', fontSize: '0.7rem' }}>
+                                                        {statusLabels[n.status]?.label || n.status}
+                                                    </span>
+                                                    {isPendingVal && daysRemaining !== null && (
+                                                        <span className={`expiration-badge ${urgency}`} style={{ margin: 0, padding: '2px 6px', fontSize: '0.6rem', textAlign: 'center', justifyContent: 'center' }}>
+                                                            {daysRemaining < 0 ? 'Expirada' : `Quedan: ${daysRemaining}d`}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div style={{ display: 'flex', gap: '6px' }}>
+                                                    <button 
+                                                        className="btn-pdf" 
+                                                        style={{ height: '28px', width: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                        title="Descargar PDF" 
+                                                        onClick={() => handleDownloadPdf(n.id, n.company)}
+                                                    >
+                                                        📄
+                                                    </button>
+                                                    <button 
+                                                        className="btn-view" 
+                                                        style={{ height: '28px', width: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                        title="Ver detalles" 
+                                                        onClick={() => viewDetails(n.id, n.company)}
+                                                        disabled={detailLoading === n.id}
+                                                    >
+                                                        {detailLoading === n.id ? '⌛' : '🔎'}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
                     </div>
 
                     {/* List Cards */}
