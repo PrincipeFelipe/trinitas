@@ -13,14 +13,36 @@ import NotificationsList from './pages/NotificationsList';
 import NotificationsReport from './pages/NotificationsReport';
 import './index.css';
 
-const ProtectedRoute = ({ children, adminOnly = false }) => {
+const ProtectedRoute = ({ children, requiredPermission = null }) => {
     const { user } = React.useContext(AuthContext);
     if (!user) return <Navigate to="/login" replace />;
-    if (adminOnly && user.role !== 'ADMIN') return <Navigate to="/" replace />;
+
+    // Empleados (couriers) are only allowed to see /repartidor
+    if (user.role === 'EMPLEADO' || user.role === 'REPARTIDOR') {
+        if (requiredPermission) {
+            return <Navigate to="/repartidor" replace />;
+        }
+        return children;
+    }
+
+    // Gerentes and Admins can access the dashboard.
+    // Other pages check for their specific permission.
+    if (requiredPermission) {
+        if (user.role === 'ADMINISTRADOR' || user.role === 'ADMIN') {
+            return children;
+        }
+        if (requiredPermission === 'dashboard' && user.role === 'GERENTE') {
+            return children;
+        }
+        if (user.permissions && user.permissions.includes(requiredPermission)) {
+            return children;
+        }
+        return <Navigate to="/" replace />;
+    }
+
     return children;
 };
 
-// ...
 function App() {
     return (
         <AuthProvider>
@@ -30,7 +52,7 @@ function App() {
                     <Route 
                         path="/" 
                         element={
-                            <ProtectedRoute adminOnly={true}>
+                            <ProtectedRoute requiredPermission="dashboard">
                                 <AdminDashboard />
                             </ProtectedRoute>
                         } 
@@ -38,7 +60,7 @@ function App() {
                     <Route 
                         path="/upload" 
                         element={
-                            <ProtectedRoute adminOnly={true}>
+                            <ProtectedRoute requiredPermission="upload">
                                 <UploadNotifications />
                             </ProtectedRoute>
                         } 
@@ -46,7 +68,7 @@ function App() {
                     <Route 
                         path="/notifications" 
                         element={
-                            <ProtectedRoute adminOnly={true}>
+                            <ProtectedRoute requiredPermission="notifications">
                                 <NotificationsList />
                             </ProtectedRoute>
                         } 
@@ -54,7 +76,7 @@ function App() {
                     <Route 
                         path="/receipts" 
                         element={
-                            <ProtectedRoute adminOnly={true}>
+                            <ProtectedRoute requiredPermission="receipts">
                                 <ReceiptsHistory />
                             </ProtectedRoute>
                         } 
@@ -62,7 +84,7 @@ function App() {
                     <Route 
                         path="/streets" 
                         element={
-                            <ProtectedRoute adminOnly={true}>
+                            <ProtectedRoute requiredPermission="streets">
                                 <StreetsManagement />
                             </ProtectedRoute>
                         } 
@@ -70,7 +92,7 @@ function App() {
                     <Route 
                         path="/demarcations" 
                         element={
-                            <ProtectedRoute adminOnly={true}>
+                            <ProtectedRoute requiredPermission="demarcations">
                                 <DemarcationsManagement />
                             </ProtectedRoute>
                         } 
@@ -78,7 +100,7 @@ function App() {
                     <Route 
                         path="/users" 
                         element={
-                            <ProtectedRoute adminOnly={true}>
+                            <ProtectedRoute requiredPermission="users">
                                 <UsersManagement />
                             </ProtectedRoute>
                         } 
@@ -86,7 +108,7 @@ function App() {
                     <Route 
                         path="/reports" 
                         element={
-                            <ProtectedRoute adminOnly={true}>
+                            <ProtectedRoute requiredPermission="reports">
                                 <NotificationsReport />
                             </ProtectedRoute>
                         } 

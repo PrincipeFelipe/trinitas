@@ -21,11 +21,26 @@ const verifyToken = (req, res, next) => {
 };
 
 const requireAdmin = (req, res, next) => {
-    if (req.user && req.user.role === 'ADMIN') {
+    if (req.user && (req.user.role === 'ADMINISTRADOR' || req.user.role === 'ADMIN')) {
         next();
     } else {
         res.status(403).json({ success: false, error: 'Requires admin privileges' });
     }
 };
 
-module.exports = { verifyToken, requireAdmin };
+const requirePermission = (moduleName) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        if (req.user.role === 'ADMINISTRADOR' || req.user.role === 'ADMIN') {
+            return next();
+        }
+        if (req.user.permissions && req.user.permissions.includes(moduleName)) {
+            return next();
+        }
+        res.status(403).json({ success: false, error: `Forbidden: requires ${moduleName} permission` });
+    };
+};
+
+module.exports = { verifyToken, requireAdmin, requirePermission };

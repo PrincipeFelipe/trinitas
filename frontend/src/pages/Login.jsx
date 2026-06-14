@@ -13,7 +13,11 @@ export default function Login() {
         e.preventDefault();
         try {
             const loggedUser = await login(username, password);
-            navigate(loggedUser.role === 'ADMIN' ? '/' : '/repartidor');
+            if (loggedUser.role === 'ADMINISTRADOR' || loggedUser.role === 'ADMIN' || loggedUser.role === 'GERENTE') {
+                navigate('/');
+            } else {
+                navigate('/repartidor');
+            }
         } catch (err) {
             setError('Credenciales inválidas');
         }

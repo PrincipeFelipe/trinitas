@@ -3,9 +3,9 @@ const router = express.Router();
 const path = require('path');
 const fs = require('fs');
 const pool = require('../db/connection');
-const { verifyToken } = require('../middlewares/auth');
+const { verifyToken, requirePermission } = require('../middlewares/auth');
 
-router.get('/history', verifyToken, async (req, res, next) => {
+router.get('/history', verifyToken, requirePermission('receipts'), async (req, res, next) => {
     try {
         const [rows] = await pool.query(`
             SELECT id, id_notificacion, recipient_name, full_address, status, company
@@ -19,7 +19,7 @@ router.get('/history', verifyToken, async (req, res, next) => {
     }
 });
 
-router.get('/:id', verifyToken, async (req, res, next) => {
+router.get('/:id', verifyToken, requirePermission('receipts'), async (req, res, next) => {
     try {
         const { id } = req.params;
         const { company } = req.query;

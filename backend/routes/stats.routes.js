@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/connection');
-const { verifyToken, requireAdmin } = require('../middlewares/auth');
+const { verifyToken, requirePermission } = require('../middlewares/auth');
 
-router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
+router.get('/', verifyToken, requirePermission('dashboard'), async (req, res, next) => {
     try {
         const { startDate, endDate, company } = req.query;
 
@@ -39,7 +39,7 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
         const [[userStats]] = await pool.query(`
             SELECT 
                 COUNT(*) as total_users,
-                SUM(CASE WHEN role = 'REPARTIDOR' THEN 1 ELSE 0 END) as total_couriers
+                SUM(CASE WHEN role = 'EMPLEADO' THEN 1 ELSE 0 END) as total_couriers
             FROM users
         `);
 
@@ -142,7 +142,7 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
                 SUM(CASE WHEN n.status = 'DEVUELTA' THEN 1 ELSE 0 END) as returned
             FROM users u
             LEFT JOIN notifications n ${courierJoinOn}
-            WHERE u.role = 'REPARTIDOR'
+            WHERE u.role = 'EMPLEADO'
             GROUP BY u.id, u.name
         `, courierParams);
 
@@ -206,7 +206,7 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
     }
 });
 
-router.get('/activity/:date', verifyToken, requireAdmin, async (req, res, next) => {
+router.get('/activity/:date', verifyToken, requirePermission('dashboard'), async (req, res, next) => {
     try {
         const { date } = req.params;
         const [rows] = await pool.query(`

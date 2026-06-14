@@ -33,7 +33,7 @@ export default function NotificationsList() {
                     apiClient.get('/users')
                 ]);
                 if (notifRes.data.success) setNotifications(notifRes.data.data);
-                if (usersRes.data.success) setUsers(usersRes.data.data.filter(u => u.role === 'REPARTIDOR'));
+                if (usersRes.data.success) setUsers(usersRes.data.data.filter(u => u.role === 'EMPLEADO' || u.role === 'REPARTIDOR'));
             } catch (err) {
                 console.error(err);
             } finally {

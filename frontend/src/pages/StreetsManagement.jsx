@@ -23,7 +23,7 @@ export default function StreetsManagement() {
             ]);
             
             if (strRes.data.success) setStreets(strRes.data.data);
-            if (usrRes.data.success) setUsers(usrRes.data.data.filter(u => u.role === 'REPARTIDOR'));
+            if (usrRes.data.success) setUsers(usrRes.data.data.filter(u => u.role === 'EMPLEADO' || u.role === 'REPARTIDOR'));
             if (demRes.data.success) setDemarcations(demRes.data.data);
         } catch (error) {
             console.error("Failed fetching data", error);

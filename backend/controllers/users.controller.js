@@ -3,8 +3,22 @@ const bcrypt = require('bcryptjs');
 
 const getAllUsers = async (req, res, next) => {
     try {
-        const [rows] = await pool.query('SELECT id, name, username, role FROM users ORDER BY id DESC');
-        res.json({ success: true, data: rows });
+        const [users] = await pool.query('SELECT id, name, username, role FROM users ORDER BY id DESC');
+        const [permissions] = await pool.query('SELECT user_id, module FROM user_permissions');
+        
+        // Group permissions by user_id
+        const permMap = {};
+        permissions.forEach(p => {
+            if (!permMap[p.user_id]) permMap[p.user_id] = [];
+            permMap[p.user_id].push(p.module);
+        });
+
+        const data = users.map(u => ({
+            ...u,
+            permissions: permMap[u.id] || []
+        }));
+
+        res.json({ success: true, data });
     } catch (error) {
         next(error);
     }
@@ -12,21 +26,29 @@ const getAllUsers = async (req, res, next) => {
 
 const createUser = async (req, res, next) => {
     try {
-        const { name, username, password, role } = req.body;
+        const { name, username, password, role, permissions } = req.body;
         if (!name || !username || !password) {
             return res.status(400).json({ success: false, error: 'Campos requeridos' });
         }
         
         const salt = await bcrypt.genSalt(10);
-        // Replace with $2b$ to make it bcryptjs compliant if environment deviates
         const hash = await bcrypt.hash(password, salt);
         const compatHash = hash.replace(/^\$2a\$/, "$2b$");
 
         const [result] = await pool.query(
             'INSERT INTO users (name, username, password_hash, role) VALUES (?, ?, ?, ?)',
-            [name, username, compatHash, role || 'REPARTIDOR']
+            [name, username, compatHash, role || 'EMPLEADO']
         );
-        res.json({ success: true, data: { id: result.insertId, name, username, role } });
+
+        const userId = result.insertId;
+
+        // If the role is ADMINISTRADOR, we don't strictly need permissions rows or we can store all
+        if (permissions && Array.isArray(permissions) && permissions.length > 0) {
+            const insertValues = permissions.map(p => [userId, p]);
+            await pool.query('INSERT INTO user_permissions (user_id, module) VALUES ?', [insertValues]);
+        }
+
+        res.json({ success: true, data: { id: userId, name, username, role, permissions: permissions || [] } });
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({ success: false, error: 'El nombre de usuario ya existe' });
@@ -51,11 +73,19 @@ const deleteUser = async (req, res, next) => {
 const updateUser = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { name, role } = req.body; // Solo updateamos metadata para no liar la passwd
+        const { name, role, permissions } = req.body;
         const [result] = await pool.query('UPDATE users SET name = ?, role = ? WHERE id = ?', [name, role, id]);
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, error: 'Usuario no encontrado' });
         }
+
+        // Sync permissions
+        await pool.query('DELETE FROM user_permissions WHERE user_id = ?', [id]);
+        if (permissions && Array.isArray(permissions) && permissions.length > 0) {
+            const insertValues = permissions.map(p => [id, p]);
+            await pool.query('INSERT INTO user_permissions (user_id, module) VALUES ?', [insertValues]);
+        }
+
         res.json({ success: true, message: 'Usuario actualizado' });
     } catch (error) {
         next(error);

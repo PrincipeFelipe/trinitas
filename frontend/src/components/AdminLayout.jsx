@@ -15,6 +15,13 @@ export default function AdminLayout({ children, title }) {
 
     const isActive = (path) => location.pathname === path ? 'active' : '';
 
+    const hasPermission = (moduleName) => {
+        if (!user) return false;
+        if (user.role === 'ADMINISTRADOR' || user.role === 'ADMIN') return true;
+        if (moduleName === 'dashboard' && user.role === 'GERENTE') return true;
+        return user.permissions && user.permissions.includes(moduleName);
+    };
+
     return (
         <div className="admin-layout">
             <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
@@ -36,46 +43,62 @@ export default function AdminLayout({ children, title }) {
                 </div>
                 <nav className="nav-menu">
                     <ul>
-                        <li>
-                            <Link to="/" className={isActive('/')}>
-                                <span className="icon">📊</span> Dashboard / Info
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/upload" className={isActive('/upload')}>
-                                <span className="icon">📤</span> Subir Notificaciones
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/notifications" className={isActive('/notifications')}>
-                                <span className="icon">📋</span> Notificaciones
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/reports" className={isActive('/reports')}>
-                                <span className="icon">📊</span> Relación de Carga
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/streets" className={isActive('/streets')}>
-                                <span className="icon">🛣️</span> Calles / BD
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/demarcations" className={isActive('/demarcations')}>
-                                <span className="icon">🗺️</span> Demarcaciones
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/receipts" className={isActive('/receipts')}>
-                                <span className="icon">📄</span> Historial / Acuses
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/users" className={isActive('/users')}>
-                                <span className="icon">👥</span> Empleados
-                            </Link>
-                        </li>
+                        {hasPermission('dashboard') && (
+                            <li>
+                                <Link to="/" className={isActive('/')}>
+                                    <span className="icon">📊</span> Dashboard / Info
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('upload') && (
+                            <li>
+                                <Link to="/upload" className={isActive('/upload')}>
+                                    <span className="icon">📤</span> Subir Notificaciones
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('notifications') && (
+                            <li>
+                                <Link to="/notifications" className={isActive('/notifications')}>
+                                    <span className="icon">📋</span> Notificaciones
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('reports') && (
+                            <li>
+                                <Link to="/reports" className={isActive('/reports')}>
+                                    <span className="icon">📊</span> Relación de Carga
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('streets') && (
+                            <li>
+                                <Link to="/streets" className={isActive('/streets')}>
+                                    <span className="icon">🛣️</span> Calles / BD
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('demarcations') && (
+                            <li>
+                                <Link to="/demarcations" className={isActive('/demarcations')}>
+                                    <span className="icon">🗺️</span> Demarcaciones
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('receipts') && (
+                            <li>
+                                <Link to="/receipts" className={isActive('/receipts')}>
+                                    <span className="icon">📄</span> Historial / Acuses
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('users') && (
+                            <li>
+                                <Link to="/users" className={isActive('/users')}>
+                                    <span className="icon">👥</span> Empleados
+                                </Link>
+                            </li>
+                        )}
                     </ul>
                 </nav>
             </aside>

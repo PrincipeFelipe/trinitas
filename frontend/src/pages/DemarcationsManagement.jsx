@@ -24,7 +24,7 @@ export default function DemarcationsManagement() {
                 apiClient.get('/streets')
             ]);
             if (demRes.data.success) setDemarcations(demRes.data.data);
-            if (userRes.data.success) setUsers(userRes.data.data.filter(u => u.role === 'REPARTIDOR'));
+            if (userRes.data.success) setUsers(userRes.data.data.filter(u => u.role === 'EMPLEADO' || u.role === 'REPARTIDOR'));
             if (streetRes.data.success) setStreets(streetRes.data.data);
         } catch (error) {
             console.error('Error fetching demarcations data', error);
