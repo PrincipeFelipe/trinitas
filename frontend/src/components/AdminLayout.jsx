@@ -65,7 +65,7 @@ export default function AdminLayout({ children, title }) {
                         </li>
                     </ul>
                 </nav>
-                <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 'auto' }}>
+                <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                     {user && <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', marginBottom: '8px' }}>👤 {user.name}</div>}
                     <button onClick={handleLogout} style={{
                         width: '100%', padding: '10px', background: 'rgba(231,76,60,0.15)', color: '#e74c3c',
