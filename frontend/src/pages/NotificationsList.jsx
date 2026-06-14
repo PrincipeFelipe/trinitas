@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../api/client';
 import AdminLayout from '../components/AdminLayout';
+import Swal from 'sweetalert2';
 
 const COMPANIES = {
     'ENERGIA_CEUTA': { name: 'Energía Ceuta XXI Comercializadora de Referencia, S.A.U.', cif: 'A51031920' },
@@ -111,59 +112,136 @@ export default function NotificationsList() {
     };
 
     const handleDownloadBulkPdf = async () => {
-        if (filtered.length === 0) return alert('No hay notificaciones para exportar');
-        if (filtered.length > 200) {
-            if (!window.confirm('Vas a exportar muchas notificaciones. Esto puede tardar un poco. ¿Continuar?')) return;
-        }
-        
-        const pairs = filtered.map(n => [n.id, n.company]);
-        const idsToArchive = filtered.map(n => n.id);
-        
-        try {
-            const response = await apiClient.post('/notifications/generate-bulk-pdf', { pairs }, {
-                responseType: 'blob'
+        if (filtered.length === 0) {
+            Swal.fire({
+                title: 'Sin notificaciones',
+                text: 'No hay notificaciones para exportar.',
+                icon: 'info'
             });
-            
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `export_notificaciones_${new Date().getTime()}.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+            return;
+        }
 
-            // Ask if user wants to archive
-            setTimeout(async () => {
-                if (window.confirm('¿Desea archivar estas notificaciones exportadas? Una vez archivadas, no aparecerán en el listado normal.')) {
-                    try {
-                        const archiveRes = await apiClient.post('/notifications/bulk-archive', { ids: idsToArchive });
-                        if (archiveRes.data.success) {
-                            // Update local state to mark them as archived
-                            setNotifications(prev => prev.map(n => {
-                                if (idsToArchive.includes(n.id)) {
-                                    return { ...n, is_archived: 1 };
-                                }
-                                return n;
-                            }));
-                            alert('Notificaciones archivadas correctamente.');
-                        }
-                    } catch (archiveErr) {
-                        console.error(archiveErr);
-                        alert('Error al archivar las notificaciones.');
-                    }
+        // Snapshot inmediato: capturamos exactamente qué notificaciones se van a exportar
+        // en este momento, antes de cualquier diálogo que pueda causar re-renders
+        const exportSnapshot = [...filtered];
+        const pairs = exportSnapshot.map(n => [n.id, n.company]);
+        const idsToArchive = exportSnapshot.map(n => n.id);
+        
+        const proceed = async () => {
+            Swal.fire({
+                title: '¿Desea archivar las notificaciones al exportar?',
+                text: `Se archivarán ${idsToArchive.length} notificaciones y no aparecerán en el listado activo.`,
+                icon: 'question',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Sí, archivar y exportar',
+                denyButtonText: 'No, sólo exportar',
+                cancelButtonText: 'Cancelar exportación',
+                confirmButtonColor: '#10b981',
+                denyButtonColor: '#3b82f6',
+                cancelButtonColor: '#6b7280'
+            }).then(async (result) => {
+                if (result.isDismissed || result.dismiss === Swal.DismissReason.cancel) {
+                    return; // User cancelled the entire export
                 }
-            }, 500);
 
-        } catch (err) {
-            console.error(err);
-            alert('Error al generar el PDF masivo');
+                const shouldArchive = result.isConfirmed;
+
+                // Show loading spinner
+                Swal.fire({
+                    title: 'Generando PDF...',
+                    html: 'Por favor, espere un momento.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                try {
+                    const response = await apiClient.post('/notifications/generate-bulk-pdf', { pairs }, {
+                        responseType: 'blob'
+                    });
+                    
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `export_notificaciones_${new Date().getTime()}.pdf`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    
+                    Swal.close(); // Close spinner
+
+                    if (shouldArchive) {
+                        try {
+                            const archiveRes = await apiClient.post('/notifications/bulk-archive', { ids: idsToArchive });
+                            if (archiveRes.data.success) {
+                                setNotifications(prev => prev.map(n => {
+                                    if (idsToArchive.includes(n.id)) {
+                                        return { ...n, is_archived: 1 };
+                                    }
+                                    return n;
+                                }));
+                                Swal.fire({
+                                    title: '¡Éxito!',
+                                    text: 'Notificaciones exportadas y archivadas correctamente.',
+                                    icon: 'success',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            }
+                        } catch (archiveErr) {
+                            console.error(archiveErr);
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'Se exportó el PDF, pero hubo un error al archivar las notificaciones.',
+                                icon: 'error'
+                            });
+                        }
+                    } else {
+                        Swal.fire({
+                            title: '¡Éxito!',
+                            text: 'Notificaciones exportadas correctamente.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Ocurrió un error al generar el PDF.',
+                        icon: 'error'
+                    });
+                }
+            });
+        };
+
+        if (exportSnapshot.length > 200) {
+            Swal.fire({
+                title: 'Exportación Grande',
+                text: `Vas a exportar ${exportSnapshot.length} notificaciones. Esto puede tardar un poco. ¿Deseas continuar?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Continuar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#6b7280'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    proceed();
+                }
+            });
+        } else {
+            proceed();
         }
     };
 
     const isPending = (status) => ['PENDIENTE', '1ER_INTENTO'].includes(status);
 
     const filtered = notifications.filter(n => {
-        const matchesArchived = showArchived ? true : !n.is_archived;
+        const matchesArchived = showArchived ? n.is_archived : !n.is_archived;
         if (!matchesArchived) return false;
 
         const companyName = n.company ? COMPANY_SHORT_NAMES[n.company] : '';
@@ -213,7 +291,7 @@ export default function NotificationsList() {
     // Group by user for summary
     const userSummary = {};
     notifications.forEach(n => {
-        if (!showArchived && n.is_archived) return; // Omit if not showing archived
+        if (showArchived ? !n.is_archived : n.is_archived) return; // Match the same filter as the list
         const key = n.assigned_user_name || 'Sin asignar';
         if (!userSummary[key]) userSummary[key] = 0;
         userSummary[key]++;
