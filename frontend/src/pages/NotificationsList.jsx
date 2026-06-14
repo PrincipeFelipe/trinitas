@@ -24,6 +24,7 @@ export default function NotificationsList() {
     const [endDate, setEndDate] = useState('');
     const [selectedDetail, setSelectedDetail] = useState(null);
     const [detailLoading, setDetailLoading] = useState(false);
+    const [showArchived, setShowArchived] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -116,6 +117,7 @@ export default function NotificationsList() {
         }
         
         const pairs = filtered.map(n => [n.id, n.company]);
+        const idsToArchive = filtered.map(n => n.id);
         
         try {
             const response = await apiClient.post('/notifications/generate-bulk-pdf', { pairs }, {
@@ -129,6 +131,29 @@ export default function NotificationsList() {
             document.body.appendChild(link);
             link.click();
             link.remove();
+
+            // Ask if user wants to archive
+            setTimeout(async () => {
+                if (window.confirm('¿Desea archivar estas notificaciones exportadas? Una vez archivadas, no aparecerán en el listado normal.')) {
+                    try {
+                        const archiveRes = await apiClient.post('/notifications/bulk-archive', { ids: idsToArchive });
+                        if (archiveRes.data.success) {
+                            // Update local state to mark them as archived
+                            setNotifications(prev => prev.map(n => {
+                                if (idsToArchive.includes(n.id)) {
+                                    return { ...n, is_archived: 1 };
+                                }
+                                return n;
+                            }));
+                            alert('Notificaciones archivadas correctamente.');
+                        }
+                    } catch (archiveErr) {
+                        console.error(archiveErr);
+                        alert('Error al archivar las notificaciones.');
+                    }
+                }
+            }, 500);
+
         } catch (err) {
             console.error(err);
             alert('Error al generar el PDF masivo');
@@ -138,6 +163,9 @@ export default function NotificationsList() {
     const isPending = (status) => ['PENDIENTE', '1ER_INTENTO'].includes(status);
 
     const filtered = notifications.filter(n => {
+        const matchesArchived = showArchived ? true : !n.is_archived;
+        if (!matchesArchived) return false;
+
         const companyName = n.company ? COMPANY_SHORT_NAMES[n.company] : '';
         const matchesSearch = !search || 
             n.id_notificacion.toLowerCase().includes(search.toLowerCase()) ||
@@ -185,6 +213,7 @@ export default function NotificationsList() {
     // Group by user for summary
     const userSummary = {};
     notifications.forEach(n => {
+        if (!showArchived && n.is_archived) return; // Omit if not showing archived
         const key = n.assigned_user_name || 'Sin asignar';
         if (!userSummary[key]) userSummary[key] = 0;
         userSummary[key]++;
@@ -470,7 +499,17 @@ export default function NotificationsList() {
                                 onChange={e => setEndDate(e.target.value)}
                             />
                         </div>
-                        {(search || filterUser || filterStatus || filterCompany || startDate || endDate) && (
+                        <div className="filter-group" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', minWidth: '150px', height: '38px', paddingBottom: '2px' }}>
+                            <input
+                                id="showArchivedCheck"
+                                type="checkbox"
+                                checked={showArchived}
+                                onChange={e => setShowArchived(e.target.checked)}
+                                style={{ width: '18px', height: '18px', cursor: 'pointer', margin: 0 }}
+                            />
+                            <label htmlFor="showArchivedCheck" style={{ cursor: 'pointer', margin: 0, textTransform: 'none', fontSize: '0.85rem', fontWeight: 600, color: '#4a5568' }}>Mostrar archivadas</label>
+                        </div>
+                        {(search || filterUser || filterStatus || filterCompany || startDate || endDate || showArchived) && (
                             <button 
                                 onClick={() => {
                                     setSearch('');
@@ -479,6 +518,7 @@ export default function NotificationsList() {
                                     setFilterCompany('');
                                     setStartDate('');
                                     setEndDate('');
+                                    setShowArchived(false);
                                 }}
                                 style={{
                                     background: '#fff5f5',

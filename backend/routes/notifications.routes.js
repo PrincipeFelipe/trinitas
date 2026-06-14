@@ -13,6 +13,7 @@ router.post('/assign-manual', verifyToken, requirePermission('upload'), notifica
 router.post('/add-streets', verifyToken, requirePermission('upload'), notificationsController.addNewStreets);
 router.post('/bulk-assign', verifyToken, requirePermission('upload'), notificationsController.bulkAssignByStreet);
 router.get('/list', verifyToken, requirePermission('notifications'), notificationsController.listNotifications);
+router.post('/bulk-archive', verifyToken, requirePermission('notifications'), notificationsController.bulkArchive);
 router.put('/reassign', verifyToken, requirePermission('notifications'), notificationsController.reassignUser);
 router.post('/reassign-all', verifyToken, requirePermission('notifications'), notificationsController.reassignAll);
 router.get('/details/:id', verifyToken, requirePermission('notifications'), notificationsController.getNotificationDetails);

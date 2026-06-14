@@ -560,6 +560,7 @@ const listNotifications = async (req, res, next) => {
                 n.status,
                 n.created_at,
                 n.company,
+                n.is_archived,
                 s.name AS street_name,
                 u.name AS assigned_user_name
             FROM notifications n
@@ -1076,6 +1077,19 @@ const generateBulkPdf = async (req, res, next) => {
     }
 };
 
+const bulkArchive = async (req, res, next) => {
+    try {
+        const { ids } = req.body;
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ success: false, error: 'No se proporcionaron identificadores' });
+        }
+        await pool.query('UPDATE notifications SET is_archived = 1 WHERE id IN (?)', [ids]);
+        res.json({ success: true, message: 'Notificaciones archivadas correctamente' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 const getUploadDates = async (req, res, next) => {
     try {
         const [rows] = await pool.query('SELECT DISTINCT DATE_FORMAT(created_at, "%Y-%m-%d") as upload_date FROM notifications ORDER BY upload_date DESC');
@@ -1125,6 +1139,7 @@ module.exports = {
     addNewStreets, 
     bulkAssignByStreet, 
     listNotifications, 
+    bulkArchive,
     reassignUser, 
     reassignAll, 
     getNotificationDetails, 
