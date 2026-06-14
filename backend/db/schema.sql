@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS Demarcations (
 
 CREATE TABLE IF NOT EXISTS Notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    id_notificacion VARCHAR(10) NOT NULL,
+    id_notificacion VARCHAR(100) NOT NULL,
     recipient_name VARCHAR(255) NOT NULL,
     full_address VARCHAR(255) NOT NULL,
     street_id INT,
