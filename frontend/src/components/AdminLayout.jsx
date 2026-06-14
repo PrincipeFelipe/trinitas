@@ -21,6 +21,19 @@ export default function AdminLayout({ children, title }) {
                 <div className="sidebar-header">
                     <img src="/logo.jpg" alt="Trinitas Logística" className="sidebar-logo-img" />
                 </div>
+                <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                    {user && <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', marginBottom: '8px' }}>👤 {user.name}</div>}
+                    <button onClick={handleLogout} style={{
+                        width: '100%', padding: '10px', background: 'rgba(231,76,60,0.15)', color: '#e74c3c',
+                        border: '1px solid rgba(231,76,60,0.3)', borderRadius: '8px', cursor: 'pointer',
+                        fontSize: '0.85rem', fontWeight: 600, transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => { e.target.style.background = 'rgba(231,76,60,0.3)'; }}
+                    onMouseLeave={e => { e.target.style.background = 'rgba(231,76,60,0.15)'; }}
+                    >
+                        🚪 Cerrar Sesión
+                    </button>
+                </div>
                 <nav className="nav-menu">
                     <ul>
                         <li>
@@ -65,19 +78,6 @@ export default function AdminLayout({ children, title }) {
                         </li>
                     </ul>
                 </nav>
-                <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                    {user && <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', marginBottom: '8px' }}>👤 {user.name}</div>}
-                    <button onClick={handleLogout} style={{
-                        width: '100%', padding: '10px', background: 'rgba(231,76,60,0.15)', color: '#e74c3c',
-                        border: '1px solid rgba(231,76,60,0.3)', borderRadius: '8px', cursor: 'pointer',
-                        fontSize: '0.85rem', fontWeight: 600, transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={e => { e.target.style.background = 'rgba(231,76,60,0.3)'; }}
-                    onMouseLeave={e => { e.target.style.background = 'rgba(231,76,60,0.15)'; }}
-                    >
-                        🚪 Cerrar Sesión
-                    </button>
-                </div>
             </aside>
             
             <div className="main-wrapper">
