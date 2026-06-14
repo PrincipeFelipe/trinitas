@@ -29,7 +29,13 @@ node make_id_unique.js
 ```
 *Este script limpiará duplicados y ajustará las claves primarias.*
 
-### 3. Instalación de Dependencias
+### 4. Migración de Base de Datos (Roles y Permisos)
+Ejecuta el script para migrar la columna `role` de los usuarios y crear la tabla `user_permissions`:
+```bash
+node migrate_roles_permissions.js
+```
+
+### 5. Instalación de Dependencias
 Asegúrate de tener todas las dependencias actualizadas:
 ```bash
 # En la carpeta backend
@@ -39,14 +45,14 @@ npm install
 npm install
 ```
 
-### 4. Compilación del Frontend
+### 6. Compilación del Frontend
 Genera el nuevo bundle del frontend para producción:
 ```bash
 # En la carpeta frontend
 npm run build
 ```
 
-### 5. Reiniciar Servicios
+### 7. Reiniciar Servicios
 Reinicia el backend para que cargue el nuevo middleware de seguridad y los nuevos controladores:
 ```bash
 # Si usas PM2
@@ -54,6 +60,7 @@ pm2 restart all
 
 # O reinicia el proceso de Node que tengas configurado
 ```
+
 
 ## Resumen de cambios implementados
 - **ID Único Global**: Ya no hay conflictos entre empresas con el mismo ID.
